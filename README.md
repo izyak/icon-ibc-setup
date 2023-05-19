@@ -2,12 +2,15 @@
 
 This repo is used to generate configuration files for ibc-connection between icon and archway chains.
 
+Change `consts.sh` as per your requirements. It contains all the configuration constants.
+
 ## ICON
 
 The submodule to be used for running ICON chain.
 
 ```sh
-https://github.com/izyak/gochain-btp
+git clone https://github.com/izyak/gochain-btp
+cd gochain-btp
 make ibc-ready
 ```
 
@@ -16,8 +19,15 @@ make ibc-ready
 Options for Archway Node: 
 1. Binary with 2 validators
 
-```
+```sh
 https://github.com/izyak/archway-node
+cd archway-node
+./node1.sh
+```
+on another terminal
+```sh
+cd archway-node
+./node2.sh
 ```
 
 2. DockerFile
