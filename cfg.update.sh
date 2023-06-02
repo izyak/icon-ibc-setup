@@ -14,6 +14,7 @@ ht=$((heightInt + 1))
 cp $YAML_FILE $BACKUP_YAML_FILE
 rm $YAML_FILE
 
+echo "The start BTP Height is:: " $ht
 cat <<EOF >> $YAML_FILE
 global:
   api-listen-addr: :5183
@@ -52,9 +53,9 @@ chains:
       keystore: $ICON_WALLET 
       password: gochain
       icon-network-id: 3
-      btp-network-id: 1
+      btp-network-id: $BTP_NETWORK_ID
       btp-network-type-id: 1
-      start-btp-height: $ht
+      start-btp-height: 0
       ibc-handler-address: $iconIBC 
 paths:
   icon-archway:

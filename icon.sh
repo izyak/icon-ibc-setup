@@ -65,6 +65,8 @@ function deployIBCHandler() {
 			--to cx0000000000000000000000000000000000000000 \
 			--key_store $wallet \
 			--key_password $password | jq -r .)
+
+
 	sleep 2
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
@@ -88,7 +90,8 @@ function deployMockApp() {
 			--nid 3 \
 			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
-			--param ibcHandler=$ibcHandler \
+			--param _ibc=$ibcHandler \
+			--param _timeoutHeight=50000000 \
 			--key_store $wallet \
 			--key_password $password | jq -r .)
         sleep 2
@@ -143,6 +146,25 @@ function registerClient() {
     sleep 2
     wait_for_it $txHash
 }
+
+
+function newMock(){
+
+	local ibcHandler=$(cat $ICON_IBC_CONTRACT)
+    local wallet=$ICON_WALLET
+    local mockApp=$(cat $ICON_MOCK_APP_CONTRACT)
+    local mock_id=$(cat $CURRENT_MOCK_ID)
+
+	local port_id=mock-$mock_id
+
+	bindPort $wallet $ibcHandler $port_id $mockApp
+
+    sleep 2
+    echo $res
+    separator
+
+}
+
 
 function bindPort() {
     echo "$ICON Bind Mock app to a port"
@@ -217,11 +239,25 @@ function setup() {
     log
 }
 
+function runNode(){
+	cd $ICON_NODE_FILE
+	docker-compose --file=compose-single.yml up  -d
+}
+
 
 case "$CMD" in
   setup )
     setup
   ;;
+
+  run-node )
+	runNode
+  ;;
+
+  new-mock )
+    newMock
+  ;;
+
   * )
     echo "Error: unknown command: $CMD"
     usage
