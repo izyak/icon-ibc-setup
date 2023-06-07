@@ -85,7 +85,9 @@ LIGHT_ICON=$CONTRACTS_DIR/$JAVA/lightclients/tendermint/$LIB/tendermint-0.1.0-op
 MOCK_ICON=$CONTRACTS_DIR/$JAVA/xcall/$LIB/xcall-0.1.0-optimized.jar
 
 
-BTP_NETWORK_ID=14
+#other
+BTP_NETWORK_ID_FILE=./env/.btpNetworkId
+BTP_NETWORK_ID=$(cat $BTP_NETWORK_ID_FILE)
 
 # all the contract addresses
 ICON_IBC_CONTRACT=./env/icon/.ibcHandler

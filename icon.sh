@@ -239,6 +239,26 @@ function setup() {
     log
 }
 
+
+function callMockContract(){
+	local addr=$(cat $ICON_MOCK_APP_CONTRACT)
+
+	local txhash=$(goloop rpc sendtx call \
+    			--uri http://localhost:9082/api/v3  \
+    			--nid 3 \
+    			--step_limit 1000000000\
+    			--to $addr \
+    			--method sendCallMessage \
+    			--param _to=eth \
+    			--param _data=0x6e696c696e \
+    			--key_store $ICON_WALLET \
+    			--key_password gochain | jq -r .)
+
+    sleep 2
+    wait_for_it $txHash
+}
+
+
 function runNode(){
 	cd $ICON_NODE_FILE
 	docker-compose --file=compose-single.yml up  -d
@@ -258,6 +278,10 @@ case "$CMD" in
     newMock
   ;;
 
+  test-call )
+	callMockContract
+	;;
+  ;;
   * )
     echo "Error: unknown command: $CMD"
     usage

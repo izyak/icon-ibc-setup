@@ -16,8 +16,10 @@ config:
 new-mock:
 	./archway.sh new-mock
 	./icon.sh new-mock
-
+	
 all:
+# if want to re-establish send arg "update" ->  make all ARG1="update"
+	./common.sh update-btp-network-id $(ARG1)
 	./icon.sh setup
 	./archway.sh setup
 	./cfg.update.sh

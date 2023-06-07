@@ -48,14 +48,14 @@ function migrateContract() {
     local contactFile=$1
     local contractAddr=$2
     local migrate_arg=$3
+
     echo "$WASM Migrating" $contactFile "to " $contractAddr " with args " $migrate_arg
 
     local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
 
 
     local code_id=$(echo $res | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
-    echo "code id: "
-    echo $code_id
+    echo "code id: " $code_id
 
 
     local res=$(archwayd tx wasm migrate $contractAddr $code_id $migrate_arg \
@@ -63,21 +63,22 @@ function migrateContract() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas auto \
-        --gas-prices 0.02$TOKE\
+        --gas-prices 0.02$TOKEN\
         --gas-adjustment 1.3 \
         -y)
 
+    sleep 10
     echo "this is the result" $res
     log
 
-    echo "sleep for 10 seconds"
-    log
-    sleep 10
 }
 
 function updateIBCContract(){
-    local migrate_arg='{\"clear_store\":false}'
+    # in json encode if double code escape  
+    # if single code donot escape 
+    local migrate_arg="{\"clear_store\":false}"
     local ibc_address=$(cat $WASM_IBC_CONTRACT)
+    
     migrateContract $IBC_WASM $ibc_address $migrate_arg
 }
 
@@ -91,10 +92,8 @@ function updateLightContract(){
 function updateMockContract(){
     local migrate_arg="{}"
     local mock_app=$(cat $WASM_MOCK_APP_CONTRACT)
-    migrateContract $MOCK_WASM $mock_app
+    migrateContract $MOCK_WASM $mock_app $migrate_arg
 }
-
-
 
 function deployIBC() {
     local init='{}'
@@ -111,7 +110,7 @@ function deployMock() {
     local mockApp=$(cat $WASM_MOCK_APP_CONTRACT)
 
     bindPortArgs="{\"bind_port\":{\"port_id\":\"mock\",\"address\":\"$mockApp\"}}"
-    local res =$(archwayd tx wasm execute $ibcContract $bindPortArgs \
+    local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs \
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
@@ -187,6 +186,36 @@ function buildContracts() {
     cp -r $CONTRACTS_DIR/artifacts/cw_icon_light_client.wasm $SCRIPTS_DIR/artifacts
 }
 
+function callMockContract(){
+
+    local addr=$(cat $WASM_MOCK_APP_CONTRACT)
+
+    echo "mock address" $addr
+
+    # sendMessage="{\"send_call_message\":{\"to\":\"eth\",\"data\":\"[]\",\"rollback\":null}}"
+    local sendMessage='{"send_call_message":{"to":"eth","data":[123,100,95,112,97],"rollback":null}}'
+    
+    echo ""
+    echo ""
+    
+    local tx_call="archwayd tx wasm execute $addr $sendMessage \
+        --from $ARCHWAY_WALLET \
+        --node $ARCHWAY_NODE \
+        --chain-id $CHAIN_ID \
+        --gas-prices 0.02$TOKEN \
+        --gas auto \
+        --gas-adjustment 1.3 \
+        -y"
+    echo "call command: " $tx_call
+
+    local res=$($tx_call)
+
+    sleep 2
+    echo $res
+    separator
+
+}
+
 function setup() {
     deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
@@ -233,6 +262,9 @@ update-light )
     ;;
 update-mock )
     updateMockContract
+    ;;
+test-call ) 
+    callMockContract
     ;;
 *)
     echo "Error: unknown command: $CMD"
