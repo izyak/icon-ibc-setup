@@ -10,6 +10,7 @@ iconIBC=$(cat $ICON_IBC_CONTRACT)
 startHeight=$(goloop rpc --uri $ICON_NODE btpnetwork 0x1 | jq -r .startHeight)
 heightInt=$(printf "%d" "$startHeight")
 ht=$((heightInt + 1))
+echo "Current BTP Network is: " $BTP_NETWORK_ID
 
 cp $YAML_FILE $BACKUP_YAML_FILE
 rm $YAML_FILE
@@ -57,6 +58,7 @@ chains:
       btp-network-type-id: 1
       start-btp-height: 0
       ibc-handler-address: $iconIBC 
+      archway-handler-address: $wasmIBC
 paths:
   icon-archway:
     src:

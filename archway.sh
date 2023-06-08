@@ -102,7 +102,7 @@ function deployIBC() {
 
 function deployMock() {
     local ibcContract=$1
-    local init="{\"timeout_height\":500000,\"ibc_host\":\"{$ibcContract}\"}"
+    local init="{\"timeout_height\":500000,\"ibc_host\":\"$ibcContract\"}"
 
     sleep 5
     deployContract $MOCK_WASM $init $WASM_MOCK_APP_CONTRACT
@@ -223,8 +223,6 @@ function setup() {
     deployMock $ibcContract
 
 }
-
-
 
 ########## ENTRYPOINTS ###############
 

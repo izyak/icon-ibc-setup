@@ -2,33 +2,20 @@
 
 source consts.sh
 
-
-
-
 function updateBTPNetworkId(){
 
-	local current_value=$(cat $BTP_NETWORK_ID_FILE)
-
-    echo "the arg is :" $1
-
-	if [ "$1" = "update" ]; then
-        echo "inside the incrementing "
-    	((current_value++))
-	else
-    	# Increment the value by one
-        echo "inside setting to one "
-
-	    current_value=1
-	fi
-
-	# Write the updated value back to the file
-	echo "$current_value" > $BTP_NETWORK_ID_FILE
-
-	# Display the updated value
-	echo "The btp-network-id is : $current_value"
+    local res=$(goloop rpc --uri $ICON_NODE btpnetworktype 0x01)
+    local hex_id=$(echo $res | jq '.openNetworkIDs | last ')    
+    local id=0
+    if [ !-z"$hex_id" ]; then
+        local trim=${hex_id:3}
+        id=${trim%?};
+    fi
+    
+    id=$((id+1))
+	echo "The btp-network-id is :" $id
+	echo "$id" > $BTP_NETWORK_ID_FILE
 }
-
-
 
 
 ########## ENTRYPOINTS ###############
@@ -55,7 +42,7 @@ fi
 case "$CMD" in
 
   update-btp-network-id )
-	updateBTPNetworkId $1
+	updateBTPNetworkId
   ;;
 
   * )
