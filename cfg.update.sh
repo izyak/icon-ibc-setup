@@ -54,8 +54,9 @@ chains:
       icon-network-id: 3
       btp-network-id: 1
       btp-network-type-id: 1
-      start-btp-height: $ht
+      start-btp-height: 0
       ibc-handler-address: $iconIBC 
+      archway-handler-address: $wasmIBC 
 paths:
   icon-archway:
     src:
