@@ -7,15 +7,17 @@ BACKUP_YAML_FILE=$HOME/.relayer/config/config_backup.yaml
 wasmIBC=$(cat $WASM_IBC_CONTRACT)
 iconIBC=$(cat $ICON_IBC_CONTRACT)
 # for start height
-startHeight=$(goloop rpc --uri $ICON_NODE btpnetwork 0x1 | jq -r .startHeight)
+startHeight=$(goloop rpc --uri $ICON_NODE btpnetwork $BTP_NETWORK_ID | jq -r .startHeight)
 heightInt=$(printf "%d" "$startHeight")
 ht=$((heightInt + 1))
+
 echo "Current BTP Network is: " $BTP_NETWORK_ID
+echo "Btp network start height is:" $ht
+
 
 cp $YAML_FILE $BACKUP_YAML_FILE
 rm $YAML_FILE
 
-echo "The start BTP Height is:: " $ht
 cat <<EOF >> $YAML_FILE
 global:
   api-listen-addr: :5183

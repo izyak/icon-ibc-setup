@@ -243,7 +243,7 @@ function setup() {
 function callMockContract(){
 	local addr=$(cat $ICON_MOCK_APP_CONTRACT)
 
-	local txhash=$(goloop rpc sendtx call \
+	local txHash=$(goloop rpc sendtx call \
     			--uri http://localhost:9082/api/v3  \
     			--nid 3 \
     			--step_limit 1000000000\
@@ -254,6 +254,7 @@ function callMockContract(){
     			--key_store $ICON_WALLET \
     			--key_password gochain | jq -r .)
 
+	echo $txHash
     sleep 2
     wait_for_it $txHash
 }
@@ -281,7 +282,6 @@ case "$CMD" in
   test-call )
 	callMockContract
 	;;
-  ;;
   * )
     echo "Error: unknown command: $CMD"
     usage

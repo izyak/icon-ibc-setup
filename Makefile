@@ -7,16 +7,17 @@ archway-node:
 icon:
 	./icon.sh setup
 
+up:
+	./common.sh update-btp-network-id
+
 archway:
 	./archway.sh setup
 
 config:
 	./cfg.update.sh
 
-up:
-	./common.sh update-btp-network-id
-
 new-mock:
+	./common.sh update-mock-id
 	./archway.sh new-mock
 	./icon.sh new-mock
 	

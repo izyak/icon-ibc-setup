@@ -190,13 +190,15 @@ function callMockContract(){
 
     local addr=$(cat $WASM_MOCK_APP_CONTRACT)
 
-    echo "mock address" $addr
 
     # sendMessage="{\"send_call_message\":{\"to\":\"eth\",\"data\":\"[]\",\"rollback\":null}}"
     local sendMessage='{"send_call_message":{"to":"eth","data":[123,100,95,112,97],"rollback":null}}'
+
+
+    local op=$(archwayd query account $addr  --output json) 
+    local sequence=$(echo $op | jq -r  '.account_number')
     
-    echo ""
-    echo ""
+    echo 
     
     local tx_call="archwayd tx wasm execute $addr $sendMessage \
         --from $ARCHWAY_WALLET \
@@ -263,6 +265,8 @@ update-mock )
     ;;
 test-call ) 
     callMockContract
+    # callMockContract
+    # callMockContract
     ;;
 *)
     echo "Error: unknown command: $CMD"

@@ -10,35 +10,29 @@ function createClient(){
 
 function createConnection(){
     rly tx conn icon-archway -d
-
 }
 
 function createChannel(){
-    rly tx chan icon-archway --src-port=mock --dst-port=mock -d
+    rly tx chan icon-archway --src-port=mock --dst-port=mock  -d
 }
 
 function handshake(){
-
     createConnection
     sleep 4
     createChannel
 
+}
 
+function link(){
+    rly tx link icon-archway --src-port mock --dst-port mock --client-tp="20000m"  -d
+    
 }
 
 
 function establish(){ 
     cd $RLY_FOLDER
     make install
-
-    icon_start_height=$1
-
-    # create client function 
-    createClient $1    
-    sleep 2 
-    handshake
-
-
+    Link
 }
 
 function start(){
@@ -47,12 +41,8 @@ function start(){
     make install
 
     echo "starting relayer...."
-    rly start -d
+    rly start icon-archway -d
 }
-
-
-
-
 
 ########## ENTRYPOINTS ###############
 usage() {
@@ -83,6 +73,12 @@ create-connection )
     ;;
 handshake ) 
     handshake
+    ;;
+link )
+    link    
+    ;;
+start )
+    start
     ;;
 
 *)
