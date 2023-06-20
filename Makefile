@@ -14,6 +14,9 @@ restart:
 	./nodes.sh close-all
 	./nodes.sh start-all
 
+test-data:
+	./prepare_test_data.sh
+
 rly:
 	./rly.sh start
 
