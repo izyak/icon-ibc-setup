@@ -153,7 +153,7 @@ function newMock(){
 
 function deployLightClient() {
     echo "To deploy light client"
-    local init="{\"src_network_id\":\"0x3.icon\",\"network_id\":$BTP_NETWORK_ID,\"network_type_id\":\"1\"}"
+    local init="{}"
     deployContract $LIGHT_WASM $init $WASM_LIGHT_CLIENT_CONTRACT
 
     local lightClientAddress=$(cat $WASM_LIGHT_CLIENT_CONTRACT)
@@ -265,8 +265,6 @@ update-mock )
     ;;
 test-call ) 
     callMockContract
-    # callMockContract
-    # callMockContract
     ;;
 *)
     echo "Error: unknown command: $CMD"
