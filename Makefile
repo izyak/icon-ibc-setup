@@ -4,6 +4,19 @@ icon-node:
 archway-node:
 	./archway.sh run-node
 
+nodes:
+	./nodes.sh start-all
+
+stop-nodes:
+	./nodes.sh close-all
+
+restart:
+	./nodes.sh close-all
+	./nodes.sh start-all
+
+rly:
+	./rly.sh start
+
 icon:
 	./icon.sh setup
 
