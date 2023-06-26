@@ -72,7 +72,7 @@ function deployMock() {
 
 function deployLightClient() {
     echo "To deploy light client"
-    local init="{\"src_network_id\":\"0x3.icon\",\"network_id\":1,\"network_type_id\":\"1\"}"
+    local init="{}"
     deployContract $LIGHT_WASM $init $WASM_LIGHT_CLIENT_CONTRACT
 
     local lightClientAddress=$(cat $WASM_LIGHT_CLIENT_CONTRACT)
