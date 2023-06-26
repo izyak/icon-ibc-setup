@@ -10,7 +10,7 @@ function deployContract() {
     echo "$WASM Deploying" $contactFile " and save to " $contractAddr
     
 
-    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
+    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --keyring-backend test --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
     # echo "Result: "
     # echo $res
 
@@ -26,6 +26,7 @@ function deployContract() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas auto \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas-adjustment 1.3 \
         -y --no-admin
@@ -60,6 +61,7 @@ function deployMock() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y)
@@ -87,6 +89,7 @@ function deployLightClient() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y)
