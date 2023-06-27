@@ -55,8 +55,8 @@ function deployMock() {
     separator
     local mockApp=$(cat $WASM_MOCK_APP_CONTRACT)
 
-    registerClient="{\"bind_port\":{\"port_id\":\"mock\",\"address\":\"$mockApp\"}}"
-    local res =$(archwayd tx wasm execute $ibcContract $bindPort \
+    local bindPortArgs="{\"bind_port\":{\"port_id\":\"mock\",\"address\":\"$mockApp\"}}"
+    local res =$(archwayd tx wasm execute $ibcContract $bindPortArgs \
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
