@@ -10,9 +10,15 @@ function deployContract() {
     echo "$WASM Deploying" $contactFile " and save to " $contractAddr
     
 
-    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
-    # echo "Result: "
-    # echo $res
+    local res=$(archwayd tx wasm store $contactFile \
+            --from $ARCHWAY_WALLET \
+            --node $ARCHWAY_NODE \
+            --chain-id $CHAIN_ID \
+            --gas-prices 0.02$TOKEN \
+            --keyring-backend test \
+            --gas auto \
+            --gas-adjustment 1.3 -y --output json -b block)
+
 
     local code_id=$(echo $res | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
     echo "code id: "
@@ -26,6 +32,7 @@ function deployContract() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas auto \
+        --keyring-backend=test \
         --gas-prices 0.02$TOKEN \
         --gas-adjustment 1.3 \
         --admin $ARCHWAY_ADDRESS \
@@ -63,6 +70,7 @@ function migrateContract() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas auto \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN\
         --gas-adjustment 1.3 \
         -y)
@@ -115,6 +123,7 @@ function deployMock() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y)
@@ -141,6 +150,7 @@ function newMock(){
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y)
@@ -168,6 +178,7 @@ function deployLightClient() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y)
@@ -188,23 +199,26 @@ function buildContracts() {
 
 function callMockContract(){
 
+    local current_height=$(goloop rpc --uri $ICON_NODE lastblock | jq .height)
+    local timeout_height=$(($current_height+20))
+    # local send_message="{\"send_call_message\":{\"to\":\"eth\",\"data\":\"[123,100,95,112,97]\",\"timeout_height\":\"$timeout_height\",\"rollback\":null}}"
+    local send_message='{"send_call_message":{"to":"eth","data":[123,100,95,112,97],"timeout_height":'$timeout_height',"rollback":null}}'
+
     local addr=$(cat $WASM_MOCK_APP_CONTRACT)
 
+    echo "payload is: " $send_message
+    local op=$(archwayd query account $ARCHWAY_ADDRESS  --output json) 
+    local sequence=$(echo $op | jq -r  '.sequence')
 
-    # sendMessage="{\"send_call_message\":{\"to\":\"eth\",\"data\":\"[]\",\"rollback\":null}}"
-    local sendMessage='{"send_call_message":{"to":"eth","data":[123,100,95,112,97],"rollback":null}}'
+    echo "sequence number: " $sequence
 
-
-    local op=$(archwayd query account $addr  --output json) 
-    local sequence=$(echo $op | jq -r  '.account_number')
-    
-    echo 
-    
-    local tx_call="archwayd tx wasm execute $addr $sendMessage \
+    local tx_call="archwayd tx wasm execute $addr $send_message \
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --sequence $sequence \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y"
@@ -212,7 +226,7 @@ function callMockContract(){
 
     local res=$($tx_call)
 
-    sleep 2
+    # sleep 2
     echo $res
     separator
 

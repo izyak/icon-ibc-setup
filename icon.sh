@@ -91,7 +91,7 @@ function deployMockApp() {
 			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
 			--param _ibc=$ibcHandler \
-			--param _timeoutHeight=50000000 \
+			--param _timeoutHeight=500000 \
 			--key_store $wallet \
 			--key_password $password | jq -r .)
         sleep 2
@@ -243,6 +243,21 @@ function setup() {
 function callMockContract(){
 	local addr=$(cat $ICON_MOCK_APP_CONTRACT)
 
+	local string_height=$(archwayd query block | jq .block.header.height)
+
+		local current_height=0
+	    if [ !-z"$string_height" ]; then
+        	local trim=${string_height:1}
+        	current_height=${trim%?};
+		else
+			echo "height is zero failed to execute  "
+			exit 0
+    	fi
+	local timeout_height=$(($current_height + 200))
+
+	# --param _height=$timeout_height \
+
+
 	local txHash=$(goloop rpc sendtx call \
     			--uri http://localhost:9082/api/v3  \
     			--nid 3 \
@@ -255,8 +270,29 @@ function callMockContract(){
     			--key_password gochain | jq -r .)
 
 	echo $txHash
+    # sleep 2
+    # wait_for_it $txHash
+}
+
+function requestTimeout(){
+
+	local addr=$(cat $ICON_IBC_CONTRACT)
+
+
+	local txHash=$(goloop rpc sendtx call \
+			--uri http://localhost:9082/api/v3  \
+			--nid 3 \
+			--step_limit 1000000000\
+			--to $addr \
+			--method requestTimeout \
+			--param packetPb="0x086412046d6f636b1a096368616e6e656c2d3022046d6f636b2a096368616e6e656c2d3032066464646464643a0310d712" \
+			--key_store $ICON_WALLET \
+			--key_password gochain | jq -r .)
+
+	echo $txHash
     sleep 2
     wait_for_it $txHash
+
 }
 
 
@@ -281,7 +317,11 @@ case "$CMD" in
 
   test-call )
 	callMockContract
+	callMockContract
 	;;
+  request-timeout ) 
+	requestTimeout
+    ;;
   * )
     echo "Error: unknown command: $CMD"
     usage

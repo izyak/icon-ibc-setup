@@ -13,7 +13,9 @@ function createConnection(){
 }
 
 function createChannel(){
-    rly tx chan icon-archway --src-port=mock --dst-port=mock  -d
+    local mockApp=$(cat $WASM_MOCK_APP_CONTRACT)
+    local mock_id=mock-$(cat $CURRENT_MOCK_ID)
+    rly tx chan icon-archway --src-port=$mock_id --dst-port=$mock_id  -d
 }
 
 function handshake(){
@@ -24,8 +26,9 @@ function handshake(){
 }
 
 function link(){
-    rly tx link icon-archway --src-port mock --dst-port mock --client-tp="20000m"  -d
+
     
+    rly tx link icon-archway --src-port mock --dst-port mock --client-tp="20000m"  -d
 }
 
 
