@@ -83,7 +83,7 @@ function deployLightClient() {
 
     echo "$WASM Register iconclient to IBC Contract"
 
-    registerClient="{\"register_client\":{\"client_type\":\"iconClient\",\"client_address\":\"$lightClientAddress\"}}"
+    registerClient="{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"$lightClientAddress\"}}"
     local res=$(archwayd tx wasm execute $ibcContract $registerClient \
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
@@ -112,7 +112,7 @@ function setup() {
     deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
     deployLightClient $ibcContract
-    # deployMock $ibcContract
+    deployMock $ibcContract
 
 }
 
