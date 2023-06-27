@@ -36,6 +36,10 @@ new-mock:
 	./common.sh update-mock-id
 	./archway.sh new-mock
 	./icon.sh new-mock
+
+chan:
+	./icon.sh chan
+	./archway.sh chan
 	
 all:
 	./common.sh update-btp-network-id

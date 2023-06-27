@@ -28,9 +28,10 @@ ARCHWAY_WALLET=godWallet
 # address of archway wallet address
 ARCHWAY_ADDRESS=archway1q6lr3hy5cxk4g74k9wcqyqarf9e97ckpn7t963 
 ARCHWAY_NETWORK=docker
+WASM_TEMP_APP_CONTRACT=./env/archway/.newApp
 
 ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
-CHAIN_ID=constantine-2
+CHAIN_ID=constantine-3
 TOKEN=uconst
 ARCHWAY_CONTRACT_ADDRESS=$CONTRACT_ADDRESSES_FOLDER/archway
 ARCHWAY_DOCKER_PATH=$HOME/archway
@@ -95,6 +96,7 @@ BTP_NETWORK_ID=$(cat $BTP_NETWORK_ID_FILE)
 ICON_IBC_CONTRACT=./env/icon/.ibcHandler
 ICON_LIGHT_CLIENT_CONTRACT=./env/icon/.lightclient
 ICON_MOCK_APP_CONTRACT=./env/icon/.mockapp
+ICON_TEMP_APP_CONTRACT=./env/icon/.newApp
 
 
 export ICON_NODE=http://localhost:9082/api/v3/

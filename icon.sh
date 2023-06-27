@@ -100,6 +100,34 @@ function deployMockApp() {
 	echo $scoreAddr > $filename
 }
 
+function newChannel() {
+	local wallet=$ICON_WALLET
+	local ibcHandler=$(cat $ICON_IBC_CONTRACT)
+	local fileName=$ICON_TEMP_APP_CONTRACT
+	newChannelInternal $wallet $ibcHandler $fileName
+
+}
+function newChannelInternal() {
+	echo "$ICON Create a new channel"
+	local wallet=$1
+	local password=gochain
+	local ibcHandler=$2
+	local filename=$3
+
+	rm $filename
+	local ibcHandler=$(cat $ICON_IBC_CONTRACT)
+
+	deployMockApp $wallet $ibcHandler $filename
+
+	separator
+    local portId=$(od -An -N1 -i /dev/random)
+    echo "PortId::> " $portId
+
+    local mockXCall=$(cat $filename)
+
+    bindPort $wallet $ibcHandler $portId $mockXCall
+}
+
 function deployLightClient() {
 	echo "$ICON Deploy Tendermint Light Client"
 	local wallet=$1
@@ -281,6 +309,10 @@ case "$CMD" in
 
   test-call )
 	callMockContract
+	;;
+
+  chan )
+	newChannel
 	;;
   * )
     echo "Error: unknown command: $CMD"

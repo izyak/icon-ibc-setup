@@ -102,14 +102,16 @@ function deployIBC() {
 
 function deployMock() {
     local ibcContract=$1
+    local mockApp=$2
+    local portId=$3
     local init="{\"timeout_height\":500000,\"ibc_host\":\"$ibcContract\"}"
 
     sleep 5
-    deployContract $MOCK_WASM $init $WASM_MOCK_APP_CONTRACT
+    deployContract $MOCK_WASM $init $mockApp
     separator
-    local mockApp=$(cat $WASM_MOCK_APP_CONTRACT)
+    local mockApp=$(cat $mockApp)
 
-    bindPortArgs="{\"bind_port\":{\"port_id\":\"mock\",\"address\":\"$mockApp\"}}"
+    bindPortArgs="{\"bind_port\":{\"port_id\":\"$portId\",\"address\":\"$mockApp\"}}"
     local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs \
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
@@ -123,6 +125,31 @@ function deployMock() {
     echo $res
     separator
 
+}
+
+function newChannel() {
+    local ibcHandler=$(cat $WASM_IBC_CONTRACT)
+    local fileName=$WASM_TEMP_APP_CONTRACT
+    newChannelInternal $ibcHandler $fileName
+
+}
+function newChannelInternal() {
+    echo "$WASM Create a new channel"
+    local ibcHandler=$1
+    local filename=$2
+
+    rm $filename
+    local ibcHandler=$(cat $WASM_IBC_CONTRACT)
+
+    separator
+    local portId=$(od -An -N1 -i /dev/random)
+    echo "PortId::> " $portId
+
+    deployMock $ibcHandler $filename $portId
+
+    # local mockXCall=$(cat $filename)
+
+    # bindPort $wallet $ibcHandler $portId $mockXCall
 }
 
 
@@ -222,7 +249,7 @@ function setup() {
     deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
     deployLightClient $ibcContract
-    deployMock $ibcContract
+    deployMock $ibcContract $WASM_MOCK_APP_CONTRACT mock
 
 }
 
@@ -265,6 +292,9 @@ update-mock )
     ;;
 test-call ) 
     callMockContract
+    ;;
+chan )
+    newChannel
     ;;
 *)
     echo "Error: unknown command: $CMD"
