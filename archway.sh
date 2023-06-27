@@ -18,7 +18,13 @@ function deployContract() {
     echo "code id: "
     echo $code_id
 
-    # get contract address
+
+    local wallet_address=$(archwayd keys show $ARCHWAY_WALLET --keyring-backend=test --output=json | jq -r .address)
+
+    local op=$(archwayd query account $wallet_address  --output json) 
+    local sequence=$(echo $op | jq -r  '.sequence')
+    echo "sequence number: " $sequence
+
 
     archwayd tx wasm instantiate $code_id $init \
         --from $ARCHWAY_WALLET \
@@ -26,6 +32,7 @@ function deployContract() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas auto \
+        --sequence $sequence \
         --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas-adjustment 1.3 \
@@ -48,15 +55,19 @@ function deployIBC() {
 }
 
 function deployMock() {
+
     local ibcContract=$1
-    local init="{\"timeout_height\":500000,\"ibc_host\":\"{$ibcContract}\"}"
+    local init="{\"timeout_height\":500000,\"ibc_host\":\"$ibcContract\"}"
+
+    echo " init message mock: "$init
+
 
     deployContract $MOCK_WASM $init $WASM_MOCK_APP_CONTRACT
     separator
     local mockApp=$(cat $WASM_MOCK_APP_CONTRACT)
 
     local bindPortArgs="{\"bind_port\":{\"port_id\":\"mock\",\"address\":\"$mockApp\"}}"
-    local res =$(archwayd tx wasm execute $ibcContract $bindPortArgs \
+    local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs \
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
@@ -66,7 +77,7 @@ function deployMock() {
         --gas-adjustment 1.3 \
         -y)
 
-    sleep 2
+    sleep 5
     echo $res
     separator
 
@@ -94,7 +105,7 @@ function deployLightClient() {
         --gas-adjustment 1.3 \
         -y)
 
-    sleep 2
+    sleep 5
     echo $res
     separator
 
