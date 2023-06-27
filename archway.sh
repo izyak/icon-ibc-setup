@@ -24,6 +24,8 @@ function deployContract() {
     echo "code id: "
     echo $code_id
 
+    local wallet_address=$(archwayd keys show $ARCHWAY_WALLET --keyring-backend=test --output=json | jq -r .address)
+
     # get contract address
 
     archwayd tx wasm instantiate $code_id $init \
@@ -35,7 +37,7 @@ function deployContract() {
         --keyring-backend=test \
         --gas-prices 0.02$TOKEN \
         --gas-adjustment 1.3 \
-        --admin $ARCHWAY_ADDRESS \
+        --admin $wallet_address \
         -y
     log
 
@@ -143,7 +145,6 @@ function newMock(){
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
 
 
-
     bindPortArgs="{\"bind_port\":{\"port_id\":\"$mockID\",\"address\":\"$mockApp\"}}"
     local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs \
         --from $ARCHWAY_WALLET \
@@ -205,11 +206,11 @@ function callMockContract(){
     local send_message='{"send_call_message":{"to":"eth","data":[123,100,95,112,97],"timeout_height":'$timeout_height',"rollback":null}}'
 
     local addr=$(cat $WASM_MOCK_APP_CONTRACT)
+    local wallet_address=$(archwayd keys show $ARCHWAY_WALLET --keyring-backend=test --output=json | jq -r .address)
 
     echo "payload is: " $send_message
-    local op=$(archwayd query account $ARCHWAY_ADDRESS  --output json) 
+    local op=$(archwayd query account $wallet_address  --output json) 
     local sequence=$(echo $op | jq -r  '.sequence')
-
     echo "sequence number: " $sequence
 
     local tx_call="archwayd tx wasm execute $addr $send_message \
