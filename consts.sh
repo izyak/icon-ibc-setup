@@ -33,6 +33,7 @@ ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
 CHAIN_ID=constantine-2
 TOKEN=uconst
 ARCHWAY_CONTRACT_ADDRESS=$CONTRACT_ADDRESSES_FOLDER/archway
+ARCHWAY_DOCKER_PATH=$HOME/archway
 
 case "$ARCHWAY_NETWORK" in
 "localnet")
@@ -79,6 +80,7 @@ JAVA=contracts/javascore
 LIB=build/libs
 
 ICON_WALLET=$HOME/keystore/godWallet.json
+ICON_DOCKER_PATH=$HOME/gochain-btp
 
 IBC_ICON=$CONTRACTS_DIR/$JAVA/ibc/$LIB/ibc-0.1.0-optimized.jar
 LIGHT_ICON=$CONTRACTS_DIR/$JAVA/lightclients/tendermint/$LIB/tendermint-0.1.0-optimized.jar
