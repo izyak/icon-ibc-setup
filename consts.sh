@@ -88,7 +88,7 @@ ICON_LIGHT_CLIENT_CONTRACT=./env/icon/.lightclient
 ICON_MOCK_APP_CONTRACT=./env/icon/.mockapp
 
 
-export ICON_NODE=http://localhost:9082/api/v3
+export ICON_NODE=http://localhost:9082/api/v3/
 export ICON_NODE_DEBUG=http://localhost:9082/api/v3d
 
 
