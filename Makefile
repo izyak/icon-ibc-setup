@@ -34,8 +34,8 @@ config:
 
 new-mock:
 	./common.sh update-mock-id
-	./archway.sh new-mock
-	./icon.sh new-mock
+	./archway.sh chan
+	./icon.sh chan
 
 chan:
 	./icon.sh chan
@@ -47,3 +47,14 @@ all:
 	./archway.sh setup
 	./cfg.update.sh
 
+ccfg:
+	./icon.sh cc
+	./archway.sh cc
+
+xx:
+	rly tx clients icon-archway --client-tp "10000s" --debug
+	rly tx conn icon-archway
+	# configureConnection in xcall connection for both chains
+	./icon.sh cc
+	./archway.sh cc
+	rly tx chan icon-archway --src-port mock-0 --dst-port mock-0

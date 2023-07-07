@@ -73,6 +73,133 @@ function deployIBCHandler() {
 	echo $scoreAddr > $filename
 }
 
+function deployXcallMulti() {
+	echo "$ICON Deploy XCall Multi Protocol"
+	local wallet=$1
+	local filename=$2
+	local password=gochain
+
+	local txHash=$(goloop rpc sendtx deploy $XCALL_MULTI_ICON \
+			--content_type application/java \
+			--uri $ICON_NODE  \
+			--nid 3 \
+			--step_limit 100000000000\
+			--to cx0000000000000000000000000000000000000000 \
+			--param networkId=0x3.icon \
+			--key_store $wallet \
+			--key_password $password | jq -r .)
+
+
+	sleep 2
+	wait_for_it $txHash
+	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
+	echo $scoreAddr > $filename
+}
+
+function deployXcallConnection() {
+	echo "$ICON Deploy XCall Connection"
+	local wallet=$1
+	local filename=$2
+	local password=gochain
+
+    local ibcHandler=$(cat $ICON_IBC_CONTRACT)
+    local xCallMulti=$(cat $ICON_XCALL_MULTI)
+    local portId=$(cat $CURRENT_MOCK_ID)
+
+
+	local txHash=$(goloop rpc sendtx deploy $XCALL_CONNECTION_ICON \
+			--content_type application/java \
+			--uri $ICON_NODE  \
+			--nid 3 \
+			--step_limit 100000000000\
+			--to cx0000000000000000000000000000000000000000 \
+			--param _xCall=$xCallMulti \
+			--param _ibc=$ibcHandler \
+			--param port=$portId \
+			--key_store $wallet \
+			--key_password $password | jq -r .)
+
+
+	sleep 2
+	wait_for_it $txHash
+	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
+	echo $scoreAddr > $filename
+}
+
+
+function deployXcallModule() {
+	local wallet=$1
+	deployXcallMulti $wallet $ICON_XCALL_MULTI
+	separator
+	deployXcallConnection $wallet $ICON_XCALL_CONNECTION
+	separator
+
+	local xcallConnection=$(cat $ICON_XCALL_CONNECTION)
+	local ibcHandler=$(cat $ICON_IBC_CONTRACT)
+	local portId=$(cat $CURRENT_MOCK_ID)
+
+	bindPort $wallet $ibcHandler $portId $xcallConnection
+}
+
+function configureConnection() {
+	local srcChainId=$(yq r $RELAY_CFG 'paths.icon-archway.src.chain-id')
+    local dstChainId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.chain-id')
+    local clientId=""
+    local connId=""
+    if [ $srcChainId = "ibc-icon" ]; then
+        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.src.client-id')
+        connId=$(yq r $RELAY_CFG 'paths.icon-archway.src.connection-id')
+    elif [ $dstChainId = "ibc-icon" ]; then
+        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.client-id')
+        connId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.connection-id')
+    fi
+
+	local portId=$(cat $CURRENT_MOCK_ID)
+	local xcallConnection=$(cat $ICON_XCALL_CONNECTION)
+
+    echo "$ICON Configure Connection"
+
+    echo "$ICON Register Tendermint Light Client"
+    local wallet=$ICON_WALLET
+    local password=gochain
+    local toContract=$(cat $ICON_XCALL_CONNECTION)
+
+    local txHash=$(goloop rpc sendtx call \
+	    --uri $ICON_NODE  \
+	    --nid 3 \
+	    --step_limit 1000000000\
+	    --to $toContract\
+	    --method configureConnection \
+	    --param connectionId=$connId \
+	    --param counterpartyPortId=$portId \
+	    --param counterpartyNid="07-tendermint" \
+	    --param clientId=$clientId \
+	    --param timeoutHeight=1000000\
+	    --key_store $wallet \
+	    --key_password $password | jq -r .)
+    sleep 2
+    wait_for_it $txHash
+
+    separator
+
+
+    local toContract=$(cat $ICON_XCALL_MULTI)
+    echo "$ICON Set xcall connection address on xcall multiprotocol"
+    local txHash=$(goloop rpc sendtx call \
+	    --uri $ICON_NODE  \
+	    --nid 3 \
+	    --step_limit 1000000000\
+	    --to $toContract\
+	    --method setDefaultConnection \
+	    --param nid=07-tendermint \
+	    --param connection=$xcallConnection \
+	    --key_store $wallet \
+	    --key_password $password | jq -r .)
+    sleep 2
+    wait_for_it $txHash
+
+}
+
 function deployMockApp() {
 	echo "$ICON Deploy MockApp"
 	local wallet=$1
@@ -94,7 +221,7 @@ function deployMockApp() {
 			--param _timeoutHeight=50000000 \
 			--key_store $wallet \
 			--key_password $password | jq -r .)
-        sleep 2
+    sleep 2
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -120,8 +247,8 @@ function newChannelInternal() {
 	deployMockApp $wallet $ibcHandler $filename
 
 	separator
-    local portId=$(od -An -N1 -i /dev/random)
-    echo "PortId::> " $portId
+	local portId=mock-$(cat $CURRENT_MOCK_ID)
+    echo "$ICON Port Id:  " $portId
 
     local mockXCall=$(cat $filename)
 
@@ -190,12 +317,10 @@ function newMock(){
     sleep 2
     echo $res
     separator
-
 }
 
-
 function bindPort() {
-    echo "$ICON Bind Mock app to a port"
+    echo "$ICON Bind module to a port"
     local wallet=$1
     local password=gochain
     local toContract=$2
@@ -256,20 +381,13 @@ function setup() {
     registerClient $wallet $ibcHandler $tmClient
 
     separator
-    deployMockApp $wallet $ibcHandler $ICON_MOCK_APP_CONTRACT
-    echo "$ICON Mock app deployed at address:"
-    local mockApp=$(cat $ICON_MOCK_APP_CONTRACT)
-    echo $mockApp
-
-    separator
-    local portId=mock
-    bindPort $wallet $ibcHandler $portId $mockApp
+    deployXcallModule $wallet
     log
 }
 
 
 function callMockContract(){
-	local addr=$(cat $ICON_MOCK_APP_CONTRACT)
+	local addr=$(cat $ICON_XCALL_MULTI)
 
 	local txHash=$(goloop rpc sendtx call \
     			--uri http://localhost:9082/api/v3  \
@@ -277,7 +395,7 @@ function callMockContract(){
     			--step_limit 1000000000\
     			--to $addr \
     			--method sendCallMessage \
-    			--param _to=eth \
+    			--param _to=07-tendermint/archway1m0zv2tl9cq6hf5tcws7j9xgyn070pz8urv06ae \
     			--param _data=0x6e696c696e \
     			--key_store $ICON_WALLET \
     			--key_password gochain | jq -r .)
@@ -310,7 +428,9 @@ case "$CMD" in
   test-call )
 	callMockContract
 	;;
-
+  cc )
+    configureConnection
+    ;;
   chan )
 	newChannel
 	;;

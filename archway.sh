@@ -100,6 +100,73 @@ function deployIBC() {
     deployContract $IBC_WASM $init $WASM_IBC_CONTRACT
 }
 
+function deployXcallModule() {
+
+    local init="{\"network_id\":\"07-tendermint\",\"denom\":\"$TOKEN\"}"
+    deployContract $XCALL_MULTI_WASM $init $WASM_XCALL_MULTI_CONTRACT
+
+    separator
+
+    local xcallContract=$(cat $WASM_XCALL_MULTI_CONTRACT)
+    local ibcHandler=$(cat $WASM_IBC_CONTRACT)
+    local portId=$(cat $CURRENT_MOCK_ID)
+
+    init="{\"ibc_host\":\"$ibcHandler\",\"port_id\":\"$portId\",\"xcall_address\":\"$xcallContract\",\"denom\":\"$TOKEN\"}"
+    deployContract $XCALL_CONNECTION_WASM $init $WASM_XCALL_CONNECTION_CONTRACT
+
+    separator
+
+    # bind port with xcall connection
+    local xcallConnection=$(cat $WASM_XCALL_CONNECTION_CONTRACT)
+    bindPortArgs="{\"bind_port\":{\"port_id\":\"$portId\",\"address\":\"$xcallConnection\"}}"
+
+    echo $WASM "Bind Port "
+    local res=$(archwayd tx wasm execute $ibcHandler $bindPortArgs \
+        --from $ARCHWAY_WALLET \
+        --node $ARCHWAY_NODE \
+        --chain-id $CHAIN_ID \
+        --gas-prices 0.02$TOKEN \
+        --gas auto \
+        --gas-adjustment 1.3 \
+        -y)
+
+    sleep 5
+    echo $res
+    separator
+}
+
+function configureConnection() {
+    local srcChainId=$(yq r $RELAY_CFG 'paths.icon-archway.src.chain-id')
+    local dstChainId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.chain-id')
+    local clientId=""
+    local connId=""
+    if [[ $srcChainId = "localnet" ]]; then
+        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.src.client-id')
+        connId=$(yq r $RELAY_CFG 'paths.icon-archway.src.connection-id')
+    elif [ $dstChainId = "localnet" ]; then
+        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.client-id')
+        connId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.connection-id')
+    fi
+
+    local portId=$(cat $CURRENT_MOCK_ID)
+    local initArgs="{\"configure_connection\":{\"connection_id\":\"$connId\",\"counterparty_port_id\":\"$portId\",\"counterparty_nid\":\"0x3.icon\",\"client_id\":\"${clientId}\",\"timeout_height\":10000}}"
+    local xcallConnection=$(cat $WASM_XCALL_CONNECTION_CONTRACT)
+
+    echo "$WASM Configure Connection"
+    local res=$(archwayd tx wasm execute $xcallConnection $initArgs \
+        --from $ARCHWAY_WALLET \
+        --node $ARCHWAY_NODE \
+        --chain-id $CHAIN_ID \
+        --gas-prices 0.02$TOKEN \
+        --gas auto \
+        --gas-adjustment 1.3 \
+        -y)
+
+    sleep 5
+    echo $res
+    separator
+}
+
 function deployMock() {
     local ibcContract=$1
     local mockApp=$2
@@ -131,8 +198,8 @@ function newChannel() {
     local ibcHandler=$(cat $WASM_IBC_CONTRACT)
     local fileName=$WASM_TEMP_APP_CONTRACT
     newChannelInternal $ibcHandler $fileName
-
 }
+
 function newChannelInternal() {
     echo "$WASM Create a new channel"
     local ibcHandler=$1
@@ -142,8 +209,11 @@ function newChannelInternal() {
     local ibcHandler=$(cat $WASM_IBC_CONTRACT)
 
     separator
-    local portId=$(od -An -N1 -i /dev/random)
-    echo "PortId::> " $portId
+    IFS='-' read -ra values <<< "$CURRENT_MOCK_ID"
+    mock_suffix_id="${values[1]}"
+
+    portId=mock-$(cat $CURRENT_MOCK_ID)
+    echo "$WASM Port Id:  " $portId
 
     deployMock $ibcHandler $filename $portId
 
@@ -159,8 +229,6 @@ function newMock(){
     mockID=mock-$(cat $CURRENT_MOCK_ID)
 
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
-
-
 
     bindPortArgs="{\"bind_port\":{\"port_id\":\"$mockID\",\"address\":\"$mockApp\"}}"
     local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs \
@@ -199,7 +267,7 @@ function deployLightClient() {
         --gas-adjustment 1.3 \
         -y)
 
-    sleep 2
+    sleep 5
     echo $res
     separator
 
@@ -249,7 +317,8 @@ function setup() {
     deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
     deployLightClient $ibcContract
-    deployMock $ibcContract $WASM_MOCK_APP_CONTRACT mock
+    deployXcallModule
+    # deployMock $ibcContract $WASM_MOCK_APP_CONTRACT mock
 
 }
 
@@ -275,7 +344,7 @@ case "$CMD" in
 setup)
     setup
     ;;
-  run-node )
+run-node )
 	runNode
     ;;
 new-mock )
@@ -295,6 +364,9 @@ test-call )
     ;;
 chan )
     newChannel
+    ;;
+cc )
+    configureConnection
     ;;
 *)
     echo "Error: unknown command: $CMD"

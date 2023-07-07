@@ -12,9 +12,9 @@ function updateBTPNetworkId(){
     esle
         local id=0
         if [ !-z"$hex_id" ]; then
-            local trim=${hex_id:3}
-            local val=${trim%?};
-            id=$((16#$val)) 
+        local trim=${hex_id:3}
+        local val=${trim%?};
+        id=$((16#$val)) 
         fi
     fi
     
@@ -25,10 +25,12 @@ function updateBTPNetworkId(){
 
 function updateMockId(){
 
-    local id=$(cat $CURRENT_MOCK_ID)
+    local fullPortId=$(cat $CURRENT_MOCK_ID)
+    IFS='-' read -ra values <<< "$fullPortId"
+    id="${values[1]}"
     id=$((id+1))
     echo "The newmock is is :" mock-$id
-	echo "$id" > $CURRENT_MOCK_ID
+	echo "mock-$id" > $CURRENT_MOCK_ID
 
 }
 
