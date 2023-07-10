@@ -84,6 +84,8 @@ function deployMockApp() {
 		filename=$ICON_MOCK_APP_CONTRACT
 	fi
 
+	local timeout_height=500000
+
 	local txHash=$(goloop rpc sendtx deploy $MOCK_ICON \
 			--content_type application/java \
 			--uri $ICON_NODE  \
@@ -91,7 +93,7 @@ function deployMockApp() {
 			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
 			--param _ibc=$ibcHandler \
-			--param _timeoutHeight=500000 \
+			--param _timeoutHeight=$timeout_height \
 			--key_store $wallet \
 			--key_password $password | jq -r .)
         sleep 2
@@ -253,9 +255,8 @@ function callMockContract(){
 			echo "height is zero failed to execute  "
 			exit 0
     	fi
-	local timeout_height=$(($current_height + 200))
+	local timeout_height=$(($current_height + 1000))
 
-	# --param _height=$timeout_height \
 
 
 	local txHash=$(goloop rpc sendtx call \
@@ -265,6 +266,7 @@ function callMockContract(){
     			--to $addr \
     			--method sendCallMessage \
     			--param _to=eth \
+				--param timeout_height=$timeout_height \
     			--param _data=0x6e696c696e \
     			--key_store $ICON_WALLET \
     			--key_password gochain | jq -r .)
@@ -316,7 +318,6 @@ case "$CMD" in
   ;;
 
   test-call )
-	callMockContract
 	callMockContract
 	;;
   request-timeout ) 

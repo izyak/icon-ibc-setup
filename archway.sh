@@ -60,7 +60,7 @@ function migrateContract() {
 
     echo "$WASM Migrating" $contactFile "to " $contractAddr " with args " $migrate_arg
 
-    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
+    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --keyring-backend test  --gas-adjustment 1.3 -y --output json -b block)
 
 
     local code_id=$(echo $res | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
@@ -201,7 +201,7 @@ function buildContracts() {
 function callMockContract(){
 
     local current_height=$(goloop rpc --uri $ICON_NODE lastblock | jq .height)
-    local timeout_height=$(($current_height+20))
+    local timeout_height=$(($current_height+200))
     # local send_message="{\"send_call_message\":{\"to\":\"eth\",\"data\":\"[123,100,95,112,97]\",\"timeout_height\":\"$timeout_height\",\"rollback\":null}}"
     local send_message='{"send_call_message":{"to":"eth","data":[123,100,95,112,97],"timeout_height":'$timeout_height',"rollback":null}}'
 

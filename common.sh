@@ -6,17 +6,12 @@ function updateBTPNetworkId(){
 
     local res=$(goloop rpc --uri $ICON_NODE btpnetworktype 0x01)
     local hex_id=$(echo $res | jq '.openNetworkIDs | last ') 
-    if [ !-z $hex_id ]; then
-        echo "BTP Network not opened yet---"
-        exit 0
-    esle
-        local id=0
-        if [ !-z"$hex_id" ]; then
-            local trim=${hex_id:3}
-            local val=${trim%?};
-            id=$((16#$val)) 
-        fi
-    fi
+     local id=0
+     if [ !-z"$hex_id" ]; then
+         local trim=${hex_id:3}
+         local val=${trim%?};
+         id=$((16#$val)) 
+     fi
     
     id=$((id+1))
 	echo "The btp-network-id is :" $id
