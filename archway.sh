@@ -10,7 +10,7 @@ function deployContract() {
     echo "$WASM Deploying" $contactFile " and save to " $contractAddr
     
 
-    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
+    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --keyring-backend test --gas-adjustment   1.3 -y --output json -b block)
     # echo "Result: "
     # echo $res
 
@@ -26,6 +26,7 @@ function deployContract() {
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas auto \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas-adjustment 1.3 \
         --admin $ARCHWAY_ADDRESS \
@@ -51,7 +52,7 @@ function migrateContract() {
 
     echo "$WASM Migrating" $contactFile "to " $contractAddr " with args " $migrate_arg
 
-    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --gas-adjustment 1.3 -y --output json -b block)
+    local res=$(archwayd tx wasm store $contactFile --from $ARCHWAY_WALLET --node $ARCHWAY_NODE --chain-id $CHAIN_ID --gas-prices 0.02$TOKEN --gas auto --keyring-backend test  --gas-adjustment 1.3 -y --output json -b block)
 
 
     local code_id=$(echo $res | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
@@ -62,6 +63,7 @@ function migrateContract() {
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
+        --keyring-backend test \
         --gas auto \
         --gas-prices 0.02$TOKEN\
         --gas-adjustment 1.3 \
@@ -111,6 +113,7 @@ function deployXcallModule() {
     local ibcHandler=$(cat $WASM_IBC_CONTRACT)
     local portId=$(cat $CURRENT_MOCK_ID)
 
+
     init="{\"ibc_host\":\"$ibcHandler\",\"port_id\":\"$portId\",\"xcall_address\":\"$xcallContract\",\"denom\":\"$TOKEN\"}"
     deployContract $XCALL_CONNECTION_WASM $init $WASM_XCALL_CONNECTION_CONTRACT
 
@@ -125,6 +128,7 @@ function deployXcallModule() {
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas auto \
         --gas-adjustment 1.3 \
@@ -157,6 +161,7 @@ function configureConnection() {
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas auto \
         --gas-adjustment 1.3 \
@@ -183,6 +188,7 @@ function deployMock() {
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas auto \
         --gas-adjustment 1.3 \
@@ -236,6 +242,7 @@ function newMock(){
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y)
@@ -262,6 +269,7 @@ function deployLightClient() {
         --from $ARCHWAY_WALLET \
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
+        --keyring-backend test \
         --gas-prices 0.02$TOKEN \
         --gas auto \
         --gas-adjustment 1.3 \
@@ -300,6 +308,7 @@ function callMockContract(){
         --node $ARCHWAY_NODE \
         --chain-id $CHAIN_ID \
         --gas-prices 0.02$TOKEN \
+        --keyring-backend test \
         --gas auto \
         --gas-adjustment 1.3 \
         -y"
