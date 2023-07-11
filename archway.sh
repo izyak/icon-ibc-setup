@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 source consts.sh
 
 function deployContract() {
@@ -325,6 +325,8 @@ function callMockContract(){
 function setup() {
     deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
+    echo $ibcContract
+    exit 0
     deployLightClient $ibcContract
     deployXcallModule
     # deployMock $ibcContract $WASM_MOCK_APP_CONTRACT mock
