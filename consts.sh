@@ -31,6 +31,8 @@ ARCHWAY_ADDRESS=archway1q6lr3hy5cxk4g74k9wcqyqarf9e97ckpn7t963
 ARCHWAY_NETWORK=docker
 WASM_TEMP_APP_CONTRACT=./env/archway/.newApp
 
+ARCHWAY_NETWORK_EXTRA="--keyring-backend test"
+
 ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
 CHAIN_ID=constantine-3
 TOKEN=uconst
@@ -53,8 +55,8 @@ case "$ARCHWAY_NETWORK" in
 "testnet")
     echo "Selected constantine testnet"
     ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
-    CHAIN_ID=constantine-2
-    TOKEN=uconst
+    CHAIN_ID=constantine-3
+    TOKEN=aconst
     ;;
 esac
 
@@ -116,6 +118,9 @@ export ICON_NODE_FILE=/Users/viveksharmapoudel/my_work_bench/ibriz/btp-related/g
 
 #common env 
 CURRENT_MOCK_ID=./env/.mockId
+
+export ICON_DEFAULT_NID="0x3.icon"
+export ARCHWAY_DEFAULT_NID="archway"
 
 
 log

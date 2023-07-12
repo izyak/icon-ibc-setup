@@ -2,6 +2,9 @@
 
 source consts.sh
 
+
+tx_call_args_icon_common=" --uri $ICON_NODE  --nid 3  --step_limit 100000000000 --key_store $ICON_WALLET --key_password gochain "
+
 function printDebugTrace() {
 	local txHash=$1
 	goloop debug trace --uri $ICON_NODE_DEBUG $txHash | jq -r .
@@ -33,16 +36,12 @@ function openBTPNetwork() {
 	local password=gochain
 
 	local txHash=$(goloop rpc sendtx call \
-	    --uri $ICON_NODE  \
-	    --nid 3 \
-	    --step_limit 1000000000\
 	    --to cx0000000000000000000000000000000000000001 \
 	    --method openBTPNetwork \
 	    --param networkTypeName=eth \
 	    --param name=$name \
 	    --param owner=$owner \
-	    --key_store $wallet \
-	    --key_password $password | jq -r .)
+		$tx_call_args_icon_common | jq -r .)
 	sleep 2
 	wait_for_it $txHash
 }
@@ -59,12 +58,8 @@ function deployIBCHandler() {
 
 	local txHash=$(goloop rpc sendtx deploy $IBC_ICON \
 			--content_type application/java \
-			--uri $ICON_NODE  \
-			--nid 3 \
-			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
-			--key_store $wallet \
-			--key_password $password | jq -r .)
+			$tx_call_args_icon_common | jq -r .)
 
 
 	sleep 2
@@ -81,13 +76,9 @@ function deployXcallMulti() {
 
 	local txHash=$(goloop rpc sendtx deploy $XCALL_MULTI_ICON \
 			--content_type application/java \
-			--uri $ICON_NODE  \
-			--nid 3 \
-			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
 			--param networkId=$ICON_DEFAULT_NID \
-			--key_store $wallet \
-			--key_password $password | jq -r .)
+			$tx_call_args_icon_common | jq -r .)
 
 
 	sleep 2
@@ -109,15 +100,11 @@ function deployXcallConnection() {
 
 	local txHash=$(goloop rpc sendtx deploy $XCALL_CONNECTION_ICON \
 			--content_type application/java \
-			--uri $ICON_NODE  \
-			--nid 3 \
-			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
 			--param _xCall=$xCallMulti \
 			--param _ibc=$ibcHandler \
 			--param port=$portId \
-			--key_store $wallet \
-			--key_password $password | jq -r .)
+			$tx_call_args_icon_common| jq -r .)
 
 
 	sleep 2
@@ -165,9 +152,6 @@ function configureConnection() {
     local toContract=$(cat $ICON_XCALL_CONNECTION)
 
     local txHash=$(goloop rpc sendtx call \
-	    --uri $ICON_NODE  \
-	    --nid 3 \
-	    --step_limit 1000000000\
 	    --to $toContract\
 	    --method configureConnection \
 	    --param connectionId=$connId \
@@ -175,8 +159,7 @@ function configureConnection() {
 	    --param counterpartyNid=$ARCHWAY_DEFAULT_NID \
 	    --param clientId=$clientId \
 	    --param timeoutHeight=1000000\
-	    --key_store $wallet \
-	    --key_password $password | jq -r .)
+		$tx_call_args_icon_common | jq -r .)
     sleep 2
     wait_for_it $txHash
 
@@ -186,15 +169,11 @@ function configureConnection() {
     local toContract=$(cat $ICON_XCALL_MULTI)
     echo "$ICON Set xcall connection address on xcall multiprotocol"
     local txHash=$(goloop rpc sendtx call \
-	    --uri $ICON_NODE  \
-	    --nid 3 \
-	    --step_limit 1000000000\
 	    --to $toContract\
 	    --method setDefaultConnection \
 	    --param nid=$ARCHWAY_DEFAULT_NID \
 	    --param connection=$xcallConnection \
-	    --key_store $wallet \
-	    --key_password $password | jq -r .)
+		$tx_call_args_icon_common | jq -r .)
     sleep 2
     wait_for_it $txHash
 
@@ -213,14 +192,11 @@ function deployMockApp() {
 
 	local txHash=$(goloop rpc sendtx deploy $MOCK_ICON \
 			--content_type application/java \
-			--uri $ICON_NODE  \
-			--nid 3 \
-			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
 			--param _ibc=$ibcHandler \
 			--param _timeoutHeight=50000000 \
-			--key_store $wallet \
-			--key_password $password | jq -r .)
+			$tx_call_args_icon_common| jq -r .)
+
     sleep 2
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
@@ -268,13 +244,9 @@ function deployLightClient() {
 
 	local txHash=$(goloop rpc sendtx deploy $LIGHT_ICON \
 			--content_type application/java \
-			--uri $ICON_NODE  \
-			--nid 3 \
-			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
             --param ibcHandler=$ibcHandler\
-			--key_store $wallet \
-			--key_password $password | jq -r .)
+			$tx_call_args_icon_common| jq -r .)
     sleep 2
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
@@ -289,15 +261,11 @@ function registerClient() {
     local clientAddr=$3
 
     local txHash=$(goloop rpc sendtx call \
-	    --uri $ICON_NODE  \
-	    --nid 3 \
-	    --step_limit 1000000000\
 	    --to $toContract\
 	    --method registerClient \
 	    --param clientType="07-tendermint" \
 	    --param client=$clientAddr \
-	    --key_store $wallet \
-	    --key_password $password | jq -r .)
+		$tx_call_args_icon_common | jq -r .)
     sleep 2
     wait_for_it $txHash
 }
@@ -328,15 +296,11 @@ function bindPort() {
     local mockAppAddr=$4
 
     local txHash=$(goloop rpc sendtx call \
-	    --uri $ICON_NODE  \
-	    --nid 3 \
-	    --step_limit 1000000000\
 	    --to $toContract\
 	    --method bindPort \
 	    --param moduleAddress=$mockAppAddr \
 	    --param portId=$portId \
-	    --key_store $wallet \
-	    --key_password $password | jq -r .)
+		$tx_call_args_icon_common | jq -r .)
     sleep 2
     wait_for_it $txHash
 }
@@ -391,15 +355,11 @@ function callMockContract(){
 
 	local default_address=archway1m0zv2tl9cq6hf5tcws7j9xgyn070pz8urv06ae
 	local txHash=$(goloop rpc sendtx call \
-    			--uri http://localhost:9082/api/v3  \
-    			--nid 3 \
-    			--step_limit 1000000000\
     			--to $addr \
     			--method sendCallMessage \
     			--param _to=$ARCHWAY_DEFAULT_NID/$default_address \
     			--param _data=0x6e696c696e \
-    			--key_store $ICON_WALLET \
-    			--key_password gochain | jq -r .)
+				$tx_call_args_icon_common | jq -r .)
 
 	echo $txHash
     sleep 2
