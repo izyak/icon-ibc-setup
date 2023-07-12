@@ -25,7 +25,7 @@ function updateMockId(){
     id="${values[1]}"
     id=$((id+1))
     echo "The newmock is is :" mock-$id
-	echo "mock-$id" > $CURRENT_MOCK_ID
+	echo "mock-$id" >  $CURRENT_MOCK_ID
 
 }
 
