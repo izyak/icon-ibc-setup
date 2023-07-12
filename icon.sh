@@ -85,7 +85,7 @@ function deployXcallMulti() {
 			--nid 3 \
 			--step_limit 100000000000\
 			--to cx0000000000000000000000000000000000000000 \
-			--param networkId=0x3.icon \
+			--param networkId=$ICON_DEFAULT_NID \
 			--key_store $wallet \
 			--key_password $password | jq -r .)
 
@@ -172,7 +172,7 @@ function configureConnection() {
 	    --method configureConnection \
 	    --param connectionId=$connId \
 	    --param counterpartyPortId=$portId \
-	    --param counterpartyNid="07-tendermint" \
+	    --param counterpartyNid=$ARCHWAY_DEFAULT_NID \
 	    --param clientId=$clientId \
 	    --param timeoutHeight=1000000\
 	    --key_store $wallet \
@@ -191,7 +191,7 @@ function configureConnection() {
 	    --step_limit 1000000000\
 	    --to $toContract\
 	    --method setDefaultConnection \
-	    --param nid=07-tendermint \
+	    --param nid=$ARCHWAY_DEFAULT_NID \
 	    --param connection=$xcallConnection \
 	    --key_store $wallet \
 	    --key_password $password | jq -r .)
@@ -389,13 +389,14 @@ function setup() {
 function callMockContract(){
 	local addr=$(cat $ICON_XCALL_MULTI)
 
+	local default_address=archway1m0zv2tl9cq6hf5tcws7j9xgyn070pz8urv06ae
 	local txHash=$(goloop rpc sendtx call \
     			--uri http://localhost:9082/api/v3  \
     			--nid 3 \
     			--step_limit 1000000000\
     			--to $addr \
     			--method sendCallMessage \
-    			--param _to=07-tendermint/archway1m0zv2tl9cq6hf5tcws7j9xgyn070pz8urv06ae \
+    			--param _to=$ARCHWAY_DEFAULT_NID/$default_address \
     			--param _data=0x6e696c696e \
     			--key_store $ICON_WALLET \
     			--key_password gochain | jq -r .)
