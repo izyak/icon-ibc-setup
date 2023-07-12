@@ -27,11 +27,10 @@ echo "$WASM: Archway Config"
 
 ARCHWAY_WALLET=godWallet
 # address of archway wallet address
-ARCHWAY_ADDRESS=archway1q6lr3hy5cxk4g74k9wcqyqarf9e97ckpn7t963 
 ARCHWAY_NETWORK=docker
 WASM_TEMP_APP_CONTRACT=./env/archway/.newApp
 
-ARCHWAY_NETWORK_EXTRA="--keyring-backend test"
+ARCHWAY_NETWORK_EXTRA=
 
 ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
 CHAIN_ID=constantine-3
