@@ -5,7 +5,7 @@
 ##------------------------COMMON---------------------------##
 ##---------------------------------------------------------##
 SCRIPTS_DIR=$PWD
-CONTRACTS_DIR=$HOME/ibriz/ibc/IBC-Integration
+CONTRACTS_DIR=$HOME/my_work_bench/ibriz/ibc-related/IBC-Integration
 CONTRACT_ADDRESSES_FOLDER=env
 RELAY_CFG=$HOME/.relayer/config/config.yaml
 

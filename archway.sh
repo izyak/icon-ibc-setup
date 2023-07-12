@@ -192,6 +192,13 @@ function newMock(){
 
 }
 
+function deployIBC(){
+    echo "deploy IBC contract "
+    init="{}"
+    deployContract $IBC_WASM $init $WASM_IBC_CONTRACT
+
+}
+
 function deployLightClient() {
     echo "To deploy light client"
     local init="{}"
