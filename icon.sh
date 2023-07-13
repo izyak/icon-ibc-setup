@@ -3,7 +3,7 @@
 source consts.sh
 
 
-tx_call_args_icon_common=" --uri $ICON_NODE  --nid 3  --step_limit 100000000000 --key_store $ICON_WALLET --key_password gochain "
+tx_call_args_icon_common=" --uri $ICON_NODE  --nid $ICON_SOURCE_ID  --step_limit 100000000000 --key_store $ICON_WALLET --key_password P@ssw0rd "
 
 function printDebugTrace() {
 	local txHash=$1

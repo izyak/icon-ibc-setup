@@ -4,8 +4,10 @@ source consts.sh
 
 
 
-fee_price=$(archwayd q rewards estimate-fees 1 --node $ARCHWAY_NODE --output json | jq -r '.gas_unit_price | (.amount + .denom)')
-tx_call_args="--from $ARCHWAY_WALLET  --node $ARCHWAY_NODE --chain-id $CHAIN_ID $ARCHWAY_NETWORK_EXTRA --gas-prices $fee_price  --gas auto --gas-adjustment 1.3   "
+# fee_price=$(archwayd q rewards estimate-fees 1 --node $ARCHWAY_NODE --output json | jq -r '.gas_unit_price | (.amount + .denom)')
+
+fee_price=$(curl -s https://api.constantine.archway.tech/archway/rewards/v1/estimate_tx_fees | jq -r '.gas_unit_price | (.amount + .denom)')
+tx_call_args="--from $ARCHWAY_WALLET  --node $ARCHWAY_NODE --chain-id $CHAIN_ID $ARCHWAY_NETWORK_EXTRA --gas-prices $fee_price  --gas auto --keyring-backend test --gas-adjustment 1.3   "
 
 function deployContract() {
 
@@ -23,9 +25,19 @@ function deployContract() {
     echo "code id: "
     echo $code_id
 
-    local addr=$(archwayd keys show godWallet --keyring-backend=test --output=json | jq -r .address)
+    local addr=$(archwayd keys show constantine-3 --keyring-backend=test --output=json | jq -r .address)
 
-    archwayd tx wasm instantiate $code_id $init $tx_call_args --label "archway-contract" --admin $addr -y
+    # archwayd tx wasm instantiate $code_id $init $tx_call_args --label "ibc" --admin $addr -y
+    archwayd tx wasm instantiate $code_id $init \
+    --from constantine-3 \
+    --keyring-backend test \
+    --label "ibc" \
+    --node https://rpc.constantine.archway.tech:443 \
+    --chain-id constantine-3 \
+    --gas-prices 900000000000.000000000000000000aconst \
+    --gas auto \
+    --gas-adjustment 1.3 -y \
+    --admin archway1z6r0f8r735mfrtrd4uv6x9f77tc6dsqzxtj7j4
     log
 
     echo "sleep for 10 seconds"
@@ -209,7 +221,7 @@ function deployLightClient() {
     separator
 
     echo "$WASM Register iconclient to IBC Contract"
-
+    exit 0
     registerClient="{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"$lightClientAddress\"}}"
     local res=$(archwayd tx wasm execute $ibcContract $registerClient $tx_call_args -y)
 
@@ -293,9 +305,10 @@ esac
 }
 
 function setup() {
-    deployIBC
+    # deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
     deployLightClient $ibcContract
+    exit 0
     deployXcallModule
     # deployMock $ibcContract $WASM_MOCK_APP_CONTRACT mock
 

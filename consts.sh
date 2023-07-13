@@ -5,7 +5,7 @@
 ##------------------------COMMON---------------------------##
 ##---------------------------------------------------------##
 SCRIPTS_DIR=$PWD
-CONTRACTS_DIR=$HOME/my_work_bench/ibriz/ibc-related/IBC-Integration
+CONTRACTS_DIR=$HOME/Developer/IBC-Integration
 CONTRACT_ADDRESSES_FOLDER=env
 RELAY_CFG=$HOME/.relayer/config/config.yaml
 
@@ -25,16 +25,16 @@ WASM=">>> COSMWASM: "
 log
 echo "$WASM: Archway Config"
 
-ARCHWAY_WALLET=godWallet
+ARCHWAY_WALLET=constantine-3
 # address of archway wallet address
-ARCHWAY_NETWORK=docker
+ARCHWAY_NETWORK=testnet
 WASM_TEMP_APP_CONTRACT=./env/archway/.newApp
 
 ARCHWAY_NETWORK_EXTRA=
 
 ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
 CHAIN_ID=constantine-3
-TOKEN=uconst
+TOKEN=aconst
 ARCHWAY_CONTRACT_ADDRESS=$CONTRACT_ADDRESSES_FOLDER/archway
 ARCHWAY_DOCKER_PATH=$HOME/archway
 
@@ -87,7 +87,8 @@ ICON_CONTRACT_ADDRESS=$CONTRACT_ADDRESSES_FOLDER/icon
 JAVA=contracts/javascore
 LIB=build/libs
 
-ICON_WALLET=$HOME/keystore/godWallet.json
+ICON_WALLET=$HOME/Developer/IBC-Integration/contracts/javascore/key.json
+ICON_WALLET_PASSWD="P@ssw0rd"
 ICON_DOCKER_PATH=$HOME/gochain-btp
 
 IBC_ICON=$CONTRACTS_DIR/$JAVA/ibc/$LIB/ibc-0.1.0-optimized.jar
@@ -110,10 +111,10 @@ ICON_XCALL_MULTI=./env/icon/.xcallMulti
 ICON_XCALL_CONNECTION=./env/icon/.xcallConnection
 
 
-export ICON_NODE=http://localhost:9082/api/v3/
+export ICON_NODE=https://berlin.net.solidwallet.io/api/v3
 export ICON_NODE_DEBUG=http://localhost:9082/api/v3d
 export ICON_NODE_FILE=/Users/viveksharmapoudel/my_work_bench/ibriz/btp-related/gochain-btp
-
+export ICON_SOURCE_ID=7
 
 #common env 
 CURRENT_MOCK_ID=./env/.mockId

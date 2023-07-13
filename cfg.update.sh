@@ -35,7 +35,7 @@ chains:
       account-prefix: archway
       keyring-backend: test
       gas-adjustment: 1.5
-      gas-prices: 0.02$TOKEN
+      gas-prices: 1000000000000aconst
       min-gas-amount: 1_000_000
       debug: true
       timeout: 20s
@@ -54,13 +54,12 @@ chains:
       rpc-addr: $ICON_NODE 
       timeout: 30s
       keystore: $ICON_WALLET 
-      password: gochain
-      icon-network-id: 3
+      password: $ICON_WALLET_PASSWD
+      icon-network-id: $ICON_SOURCE_ID
       btp-network-id: $BTP_NETWORK_ID
       btp-network-type-id: 1
       start-btp-height: 0
       ibc-handler-address: $iconIBC 
-      archway-handler-address: $wasmIBC
 paths:
   icon-archway:
     src:
