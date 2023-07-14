@@ -46,9 +46,9 @@ ccfg:
 	./archway.sh cc
 
 setup-xcall:
-# 	rly tx clients icon-archway --client-tp "10000m" --debug
-	rly tx conn icon-archway
-# 	# configureConnection in xcall connection for both chains
+	rly tx clients icon-archway --icon-start-height 10832322 --client-tp "10000m" --debug
+	rly tx conn icon-archway -d 
+# 	configureConnection in xcall connection for both chains
 # 	./icon.sh cc
 # 	./archway.sh cc
 # 	./rly.sh create-channel

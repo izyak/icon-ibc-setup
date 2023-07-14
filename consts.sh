@@ -61,11 +61,11 @@ esac
 
 ARCHWAY_KEY_DIR=$HOME/.relayer/keys/$CHAIN_ID
 
-IBC_WASM=$CONTRACTS_DIR/artifacts/cw_ibc_core.wasm
-LIGHT_WASM=$CONTRACTS_DIR/artifacts/cw_icon_light_client.wasm
-MOCK_WASM=$CONTRACTS_DIR/artifacts/cw_xcall.wasm
-XCALL_MULTI_WASM=$CONTRACTS_DIR/artifacts/cw_xcall_multi.wasm
-XCALL_CONNECTION_WASM=$CONTRACTS_DIR/artifacts/cw_xcall_ibc_connection.wasm
+IBC_WASM=$CONTRACTS_DIR/artifacts/archway/cw_ibc_core.wasm
+LIGHT_WASM=$CONTRACTS_DIR/artifacts/archway/cw_icon_light_client.wasm
+MOCK_WASM=$CONTRACTS_DIR/artifacts/archway/cw_xcall.wasm
+XCALL_MULTI_WASM=$CONTRACTS_DIR/artifacts/archway/cw_xcall_multi.wasm
+XCALL_CONNECTION_WASM=$CONTRACTS_DIR/artifacts/archway/cw_xcall_ibc_connection.wasm
 
 
 # all the contract addresses
@@ -119,7 +119,7 @@ export ICON_SOURCE_ID=7
 #common env 
 CURRENT_MOCK_ID=./env/.mockId
 
-export ICON_DEFAULT_NID="0x3.icon"
+export ICON_DEFAULT_NID="0x$ICON_SOURCE_ID.icon"
 export ARCHWAY_DEFAULT_NID="archway"
 
 

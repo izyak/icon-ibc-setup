@@ -129,17 +129,17 @@ function deployXcallModule() {
 }
 
 function configureConnection() {
-	local srcChainId=$(yq r $RELAY_CFG 'paths.icon-archway.src.chain-id')
-    local dstChainId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.chain-id')
-    local clientId=""
-    local connId=""
-    if [ $srcChainId = "ibc-icon" ]; then
-        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.src.client-id')
-        connId=$(yq r $RELAY_CFG 'paths.icon-archway.src.connection-id')
-    elif [ $dstChainId = "ibc-icon" ]; then
-        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.client-id')
-        connId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.connection-id')
-    fi
+	local srcChainId=ibc-icon
+    local dstChainId=constantine-3
+    local clientId="07-tendermint-2"
+    local connId="connection-6"
+    # if [ $srcChainId = "ibc-icon" ]; then
+    #     clientId="07-tendermint-2"
+    #     connId=connection-0
+    # elif [ $dstChainId = "ibc-icon" ]; then
+    #     clientId=iconclient-0
+    #     connId=connection-0
+    # fi
 
 	local portId=$(cat $CURRENT_MOCK_ID)
 	local xcallConnection=$(cat $ICON_XCALL_CONNECTION)
@@ -148,7 +148,7 @@ function configureConnection() {
 
     echo "$ICON Register Tendermint Light Client"
     local wallet=$ICON_WALLET
-    local password=gochain
+    local password=P@ssw0rd
     local toContract=$(cat $ICON_XCALL_CONNECTION)
 
     local txHash=$(goloop rpc sendtx call \
@@ -166,16 +166,16 @@ function configureConnection() {
     separator
 
 
-    local toContract=$(cat $ICON_XCALL_MULTI)
-    echo "$ICON Set xcall connection address on xcall multiprotocol"
-    local txHash=$(goloop rpc sendtx call \
-	    --to $toContract\
-	    --method setDefaultConnection \
-	    --param nid=$ARCHWAY_DEFAULT_NID \
-	    --param connection=$xcallConnection \
-		$tx_call_args_icon_common | jq -r .)
-    sleep 2
-    wait_for_it $txHash
+    # local toContract=$(cat $ICON_XCALL_MULTI)
+    # echo "$ICON Set xcall connection address on xcall multiprotocol"
+    # local txHash=$(goloop rpc sendtx call \
+	#     --to $toContract\
+	#     --method setDefaultConnection \
+	#     --param nid=$ARCHWAY_DEFAULT_NID \
+	#     --param connection=$xcallConnection \
+	# 	$tx_call_args_icon_common | jq -r .)
+    # sleep 6
+    # wait_for_it $txHash
 
 }
 

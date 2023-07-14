@@ -104,17 +104,17 @@ function deployXcallModule() {
 }
 
 function configureConnection() {
-    local srcChainId=$(yq r $RELAY_CFG 'paths.icon-archway.src.chain-id')
-    local dstChainId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.chain-id')
-    local clientId=""
-    local connId=""
-    if [[ $srcChainId = "localnet" ]]; then
-        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.src.client-id')
-        connId=$(yq r $RELAY_CFG 'paths.icon-archway.src.connection-id')
-    elif [ $dstChainId = "localnet" ]; then
-        clientId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.client-id')
-        connId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.connection-id')
-    fi
+    local srcChainId=ibc-icon
+    local dstChainId=constantine-3
+    local clientId="iconclient-0"
+    local connId="connection-2"
+    # if [[ $srcChainId = "constantine-3" ]]; then
+    #     clientId="07-tendermint-2"
+    #     connId=connection-0
+    # elif [ $dstChainId = "ibc-icon" ]; then
+    #     clientId=iconclient-0
+    #     connId=connection-0
+    # fi
 
     local portId=$(cat $CURRENT_MOCK_ID)
 
@@ -221,7 +221,7 @@ function deployLightClient() {
     separator
 
     echo "$WASM Register iconclient to IBC Contract"
-    exit 0
+    # exit 0
     registerClient="{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"$lightClientAddress\"}}"
     local res=$(archwayd tx wasm execute $ibcContract $registerClient $tx_call_args -y)
 
@@ -305,10 +305,9 @@ esac
 }
 
 function setup() {
-    # deployIBC
+    deployIBC
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
     deployLightClient $ibcContract
-    exit 0
     deployXcallModule
     # deployMock $ibcContract $WASM_MOCK_APP_CONTRACT mock
 
