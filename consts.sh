@@ -19,53 +19,71 @@ function separator() {
 
 
 ##---------------------------------------------------------##
-##------------------------Archway--------------------------##
+##------------------------WASM--------------------------##
 ##---------------------------------------------------------##
-WASM=">>> COSMWASM: "
-log
-echo "$WASM: Archway Config"
+WASM_TYPE=neutron
 
-ARCHWAY_WALLET=godWallet
-# address of archway wallet address
-ARCHWAY_NETWORK=docker
-WASM_TEMP_APP_CONTRACT=./env/archway/.newApp
-
-ARCHWAY_NETWORK_EXTRA=
-
-ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
-CHAIN_ID=constantine-3
-TOKEN=uconst
-ARCHWAY_CONTRACT_ADDRESS=$CONTRACT_ADDRESSES_FOLDER/archway
-ARCHWAY_DOCKER_PATH=$HOME/archway
-
-case "$ARCHWAY_NETWORK" in
-"localnet")
-    echo "Selected localnet..."
-    ARCHWAY_NODE=http://localhost:26657
-    CHAIN_ID=my-chain
-    TOKEN=validatortoken
+case "$WASM_TYPE" in
+    "neutron" )
+    WASM_BINARY=neutrond
+    WASM_NAME=Neutron
+    WASM_WALLET=godwallet
     ;;
-"docker")
-    echo "Selected docker image..."
-    ARCHWAY_NODE=http://localhost:26657
-    CHAIN_ID=localnet
-    TOKEN=stake
-    ;;
-"testnet")
-    echo "Selected constantine testnet"
-    ARCHWAY_NODE=https://rpc.constantine.archway.tech:443
-    CHAIN_ID=constantine-3
-    TOKEN=aconst
+    "archway" ) 
+    WASM_BINARY=archwayd
+    WASM_NAME=Archway
+    WASM_WALLET=godWallet
     ;;
 esac
 
-ARCHWAY_KEY_DIR=$HOME/.relayer/keys/$CHAIN_ID
 
-IBC_WASM=$CONTRACTS_DIR/artifacts/cw_ibc_core.wasm
-LIGHT_WASM=$CONTRACTS_DIR/artifacts/cw_icon_light_client.wasm
-MOCK_WASM=$CONTRACTS_DIR/artifacts/cw_xcall.wasm
-XCALL_MULTI_WASM=$CONTRACTS_DIR/artifacts/cw_xcall_multi.wasm
-XCALL_CONNECTION_WASM=$CONTRACTS_DIR/artifacts/cw_xcall_ibc_connection.wasm
+
+WASM=">>> COSMWASM: $WASM_NAME "
+log
+echo "$WASM: Config"
+
+WASM_NETWORK=neutron-local
+WASM_TEMP_APP_CONTRACT=./env/$WASM_TYPE/.newApp
+WASM_NETWORK_EXTRA=""
+
+ARCHWAY_TESTNET_NODE=https://rpc.constantine.archway.tech:443
+ARCHWAY_TESTNET_CHAIN_ID=constantine-3
+WASM_CONTRACT_ADDRESS=$CONTRACT_ADDRESSES_FOLDER/archway
+ARCHWAY_DOCKER_PATH=$HOME/archway
+
+WASM_NODE=http://localhost:26657
+
+case "$WASM_NETWORK" in
+"archway-localnet")
+    echo "Selected localnet..."
+    WASM_CHAIN_ID=my-chain
+    TOKEN=validatortoken
+    ;;
+"archway-docker")
+    echo "Selected docker image..."
+    WASM_CHAIN_ID=localnet
+    TOKEN=stake
+    ;;
+"archway-testnet")
+    echo "Selected constantine testnet"
+    WASM_NODE=https://rpc.constantine.archway.tech:443
+    WASM_CHAIN_ID=constantine-3
+    TOKEN=aconst
+    ;;
+"neutron-local")
+    echo "Selected constantine testnet"
+    WASM_CHAIN_ID=test-1
+    TOKEN=untrn
+    ;;
+esac
+
+WASM_KEY_DIR=$HOME/.relayer/keys/$WASM_CHAIN_ID
+
+IBC_WASM=$CONTRACTS_DIR/artifacts/archway/cw_ibc_core.wasm
+LIGHT_WASM=$CONTRACTS_DIR/artifacts/archway/cw_icon_light_client.wasm
+MOCK_WASM=$CONTRACTS_DIR/artifacts/archway/cw_xcall.wasm
+XCALL_MULTI_WASM=$CONTRACTS_DIR/artifacts/archway/cw_xcall.wasm
+XCALL_CONNECTION_WASM=$CONTRACTS_DIR/artifacts/archway/cw_xcall_ibc_connection.wasm
 
 
 # all the contract addresses
@@ -119,7 +137,7 @@ export ICON_NODE_FILE=/Users/viveksharmapoudel/my_work_bench/ibriz/btp-related/g
 CURRENT_MOCK_ID=./env/.mockId
 
 export ICON_DEFAULT_NID="0x3.icon"
-export ARCHWAY_DEFAULT_NID="archway"
+export WASM_DEFAULT_NID=archway
 
 
 log

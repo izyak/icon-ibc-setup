@@ -46,8 +46,8 @@ ccfg:
 	./archway.sh cc
 
 setup-xcall:
-	rly tx clients icon-archway --client-tp "10000s" --debug
-	rly tx conn icon-archway
+	rly tx clients icon-archway --client-tp "10000m" --debug
+	rly tx conn icon-archway --debug
 	# configureConnection in xcall connection for both chains
 	./icon.sh cc
 	./archway.sh cc

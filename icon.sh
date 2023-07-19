@@ -42,7 +42,7 @@ function openBTPNetwork() {
 	    --param name=$name \
 	    --param owner=$owner \
 		$tx_call_args_icon_common | jq -r .)
-	sleep 2
+	sleep 4
 	wait_for_it $txHash
 }
 
@@ -62,7 +62,7 @@ function deployIBCHandler() {
 			$tx_call_args_icon_common | jq -r .)
 
 
-	sleep 2
+	sleep 4
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -81,7 +81,7 @@ function deployXcallMulti() {
 			$tx_call_args_icon_common | jq -r .)
 
 
-	sleep 2
+	sleep 4
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -107,7 +107,7 @@ function deployXcallConnection() {
 			$tx_call_args_icon_common| jq -r .)
 
 
-	sleep 2
+	sleep 4
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -124,6 +124,8 @@ function deployXcallModule() {
 	local xcallConnection=$(cat $ICON_XCALL_CONNECTION)
 	local ibcHandler=$(cat $ICON_IBC_CONTRACT)
 	local portId=$(cat $CURRENT_MOCK_ID)
+
+	echo "deploy XCALL module: "$ICON_XCALL_CONNECTION
 
 	bindPort $wallet $ibcHandler $portId $xcallConnection
 }
@@ -156,11 +158,11 @@ function configureConnection() {
 	    --method configureConnection \
 	    --param connectionId=$connId \
 	    --param counterpartyPortId=$portId \
-	    --param counterpartyNid=$ARCHWAY_DEFAULT_NID \
+	    --param counterpartyNid=$WASM_DEFAULT_NID \
 	    --param clientId=$clientId \
 	    --param timeoutHeight=1000000\
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep 4
     wait_for_it $txHash
 
     separator
@@ -171,10 +173,10 @@ function configureConnection() {
     local txHash=$(goloop rpc sendtx call \
 	    --to $toContract\
 	    --method setDefaultConnection \
-	    --param nid=$ARCHWAY_DEFAULT_NID \
+	    --param nid=$WASM_DEFAULT_NID \
 	    --param connection=$xcallConnection \
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep 4
     wait_for_it $txHash
 
 }
@@ -197,7 +199,7 @@ function deployMockApp() {
 			--param _timeoutHeight=50000000 \
 			$tx_call_args_icon_common| jq -r .)
 
-    sleep 2
+    sleep 4
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -247,7 +249,7 @@ function deployLightClient() {
 			--to cx0000000000000000000000000000000000000000 \
             --param ibcHandler=$ibcHandler\
 			$tx_call_args_icon_common| jq -r .)
-    sleep 2
+    sleep 4
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -266,7 +268,7 @@ function registerClient() {
 	    --param clientType="07-tendermint" \
 	    --param client=$clientAddr \
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep 4
     wait_for_it $txHash
 }
 
@@ -282,7 +284,7 @@ function newMock(){
 
 	bindPort $wallet $ibcHandler $port_id $mockApp
 
-    sleep 2
+    sleep 4
     echo $res
     separator
 }
@@ -301,7 +303,7 @@ function bindPort() {
 	    --param moduleAddress=$mockAppAddr \
 	    --param portId=$portId \
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep 4
     wait_for_it $txHash
 }
 
@@ -357,12 +359,12 @@ function callMockContract(){
 	local txHash=$(goloop rpc sendtx call \
     			--to $addr \
     			--method sendCallMessage \
-    			--param _to=$ARCHWAY_DEFAULT_NID/$default_address \
+    			--param _to=$WASM_DEFAULT_NID/$default_address \
     			--param _data=0x6e696c696e \
 				$tx_call_args_icon_common | jq -r .)
 
 	echo $txHash
-    sleep 2
+    sleep 4
     wait_for_it $txHash
 }
 

@@ -3,9 +3,9 @@
 source consts.sh
 
 
-
-fee_price=$(archwayd q rewards estimate-fees 1 --node $ARCHWAY_NODE --output json | jq -r '.gas_unit_price | (.amount + .denom)')
-tx_call_args="--from $ARCHWAY_WALLET  --node $ARCHWAY_NODE --chain-id $CHAIN_ID $ARCHWAY_NETWORK_EXTRA --gas-prices $fee_price  --gas auto --gas-adjustment 1.3   "
+# fee_price=$($WASM_BINARY q rewards estimate-fees 1 --node $WASM_NODE --output json | jq -r '.gas_unit_price | (.amount + .denom)')
+fee_price=100000$TOKEN
+tx_call_args="--from $WASM_WALLET  --node $WASM_NODE --chain-id $WASM_CHAIN_ID $WASM_NETWORK_EXTRA --gas-prices $fee_price  --gas auto --gas-adjustment 1.3 "
 
 function deployContract() {
 
@@ -14,25 +14,27 @@ function deployContract() {
     local contractAddr=$3
     echo "$WASM Deploying" $contactFile " and save to " $contractAddr
 
-    local res=$(archwayd tx wasm store $contactFile $tx_call_args   -y --output json -b block)
-
+    local res=$($WASM_BINARY tx wasm store $contactFile $tx_call_args   -y --output json -b block)
+    echo "there is "
     echo $res
     sleep 10
+
+
 
     local code_id=$(echo $res | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
     echo "code id: "
     echo $code_id
 
-    local addr=$(archwayd keys show godWallet --keyring-backend=test --output=json | jq -r .address)
+    local addr=$($WASM_BINARY keys show $WASM_WALLET $WASM_NETWORK_EXTRA --output=json | jq -r .address)
 
-    archwayd tx wasm instantiate $code_id $init $tx_call_args --label "archway-contract" --admin $addr -y
+    $WASM_BINARY tx wasm instantiate $code_id $init $tx_call_args --label "archway-contract" --admin $addr -y
     log
 
     echo "sleep for 10 seconds"
     log
     sleep 10
 
-    CONTRACT=$(archwayd query wasm list-contract-by-code $code_id --node $ARCHWAY_NODE --output json | jq -r '.contracts[-1]')
+    CONTRACT=$($WASM_BINARY query wasm list-contract-by-code $code_id --node $WASM_NODE --output json | jq -r '.contracts[-1]')
     echo "$WASM IBC Contract Deployed at address"
     echo $CONTRACT
     echo $CONTRACT >$contractAddr
@@ -47,14 +49,14 @@ function migrateContract() {
 
     echo "$WASM Migrating" $contactFile "to " $contractAddr " with args " $migrate_arg
 
-    local res=$(archwayd tx wasm store $contactFile $tx_call_args -y --output json -b block)
+    local res=$($WASM_BINARY tx wasm store $contactFile $tx_call_args -y --output json -b block)
 
 
     local code_id=$(echo $res | jq -r '.logs[0].events[] | select(.type=="store_code") | .attributes[] | select(.key=="code_id") | .value')
     echo "code id: " $code_id
 
 
-    local res=$(archwayd tx wasm migrate $contractAddr $code_id $migrate_arg $tx_call_args -y)
+    local res=$($WASM_BINARY tx wasm migrate $contractAddr $code_id $migrate_arg $tx_call_args -y)
 
     sleep 10
     echo "this is the result" $res
@@ -64,7 +66,7 @@ function migrateContract() {
 
 function deployXcallModule() {
 
-    local init="{\"network_id\":\"$ARCHWAY_DEFAULT_NID\",\"denom\":\"$TOKEN\"}"
+    local init="{\"network_id\":\"$WASM_DEFAULT_NID\",\"denom\":\"$TOKEN\"}"
     deployContract $XCALL_MULTI_WASM $init $WASM_XCALL_MULTI_CONTRACT
 
     separator
@@ -84,7 +86,7 @@ function deployXcallModule() {
     bindPortArgs="{\"bind_port\":{\"port_id\":\"$portId\",\"address\":\"$xcallConnection\"}}"
 
     echo $WASM "Bind Port "
-    local res=$(archwayd tx wasm execute $ibcHandler $bindPortArgs $tx_call_args -y)
+    local res=$($WASM_BINARY tx wasm execute $ibcHandler $bindPortArgs $tx_call_args -y)
 
     sleep 5
     echo $res
@@ -96,21 +98,23 @@ function configureConnection() {
     local dstChainId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.chain-id')
     local clientId=""
     local connId=""
-    if [[ $srcChainId = "localnet" ]]; then
+
+    if [[ $srcChainId = $WASM_CHAIN_ID ]]; then
         clientId=$(yq r $RELAY_CFG 'paths.icon-archway.src.client-id')
         connId=$(yq r $RELAY_CFG 'paths.icon-archway.src.connection-id')
-    elif [ $dstChainId = "localnet" ]; then
+    elif [ $dstChainId = $WASM_CHAIN_ID ]; then
         clientId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.client-id')
         connId=$(yq r $RELAY_CFG 'paths.icon-archway.dst.connection-id')
     fi
 
     local portId=$(cat $CURRENT_MOCK_ID)
 
-    local initArgs="{\"configure_connection\":{\"connection_id\":\"$connId\",\"counterparty_port_id\":\"$portId\",\"counterparty_nid\":\"$ICON_DEFAULT_NID\",\"client_id\":\"${clientId}\",\"timeout_height\":10000}}"
+    local initArgs="{\"configure_connection\":{\"connection_id\":\"$connId\",\"counterparty_port_id\":\"$portId\",\"counterparty_nid\":\"$ICON_DEFAULT_NID\",\"client_id\":\"$clientId\",\"timeout_height\":10000}}"
     local xcallConnection=$(cat $WASM_XCALL_CONNECTION_CONTRACT)
 
     echo "$WASM Configure Connection"
-    local res=$(archwayd tx wasm execute $xcallConnection $initArgs $tx_call_args -y)
+    echo $initArgs
+    local res=$($WASM_BINARY tx wasm execute $xcallConnection $initArgs $tx_call_args -y)
 
     sleep 5
     echo $res
@@ -120,7 +124,7 @@ function configureConnection() {
 
     local args="{\"set_default_connection\":{\"nid\":\"$ICON_DEFAULT_NID\",\"address\":\"$xcallConnection\"}}"
     echo "set default connection args: " $args
-        local res=$(archwayd tx wasm execute $multiConnection $args $tx_call_args -y)
+        local res=$($WASM_BINARY tx wasm execute $multiConnection $args $tx_call_args -y)
 
     sleep 5
     echo $res
@@ -139,7 +143,7 @@ function deployMock() {
     local mockApp=$(cat $mockApp)
 
     bindPortArgs="{\"bind_port\":{\"port_id\":\"$portId\",\"address\":\"$mockApp\"}}"
-    local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs $tx_call_args -y)
+    local res=$($WASM_BINARY tx wasm execute $ibcContract $bindPortArgs $tx_call_args -y)
 
     sleep 2
     echo $res
@@ -184,7 +188,7 @@ function newMock(){
     local ibcContract=$(cat $WASM_IBC_CONTRACT)
 
     bindPortArgs="{\"bind_port\":{\"port_id\":\"$mockID\",\"address\":\"$mockApp\"}}"
-    local res=$(archwayd tx wasm execute $ibcContract $bindPortArgs $tx_call_args -y)
+    local res=$($WASM_BINARY tx wasm execute $ibcContract $bindPortArgs $tx_call_args -y)
 
     sleep 2
     echo $res
@@ -201,6 +205,8 @@ function deployIBC(){
 
 function deployLightClient() {
     echo "To deploy light client"
+    local ibcAddress=$(cat $WASM_IBC_CONTRACT)
+    # local init="{\"ibc_host\":\"$ibcAddress\"}"
     local init="{}"
     deployContract $LIGHT_WASM $init $WASM_LIGHT_CLIENT_CONTRACT
 
@@ -211,7 +217,7 @@ function deployLightClient() {
     echo "$WASM Register iconclient to IBC Contract"
 
     registerClient="{\"register_client\":{\"client_type\":\"iconclient\",\"client_address\":\"$lightClientAddress\"}}"
-    local res=$(archwayd tx wasm execute $ibcContract $registerClient $tx_call_args -y)
+    local res=$($WASM_BINARY tx wasm execute $ibcContract $registerClient $tx_call_args -y)
 
     sleep 5
     echo $res
@@ -239,11 +245,11 @@ function callMockContract(){
     local sendMessage="{\"send_call_message\":{\"to\":\"$ICON_DEFAULT_NID/$default_address\",\"data\":[123,100,95,112,97]}}"
 
 
-    local op=$(archwayd query account $addr  --output json) 
+    local op=$($WASM_BINARY query account $addr  --output json) 
     local sequence=$(echo $op | jq -r  '.account_number')
     
     
-    local tx_call="archwayd tx wasm execute $addr $sendMessage $tx_call_args -y"
+    local tx_call="$WASM_BINARY tx wasm execute $addr $sendMessage $tx_call_args -y"
     echo "call command: " $tx_call
 
     local res=$($tx_call)

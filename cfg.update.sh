@@ -25,14 +25,14 @@ global:
   memo: ""
   light-cache-size: 20
 chains:
-  archway:
-    type: archway
+  $WASM_TYPE:
+    type: wasm
     value:
-      key-directory: $ARCHWAY_KEY_DIR 
-      key: default
-      chain-id: $CHAIN_ID
-      rpc-addr: $ARCHWAY_NODE
-      account-prefix: archway
+      key-directory: $WASM_KEY_DIR
+      key: $WASM_WALLET
+      chain-id: $WASM_CHAIN_ID
+      rpc-addr: $WASM_NODE
+      account-prefix: $WASM_TYPE
       keyring-backend: test
       gas-adjustment: 1.5
       gas-prices: 0.02$TOKEN
@@ -61,12 +61,13 @@ chains:
       start-btp-height: 0
       ibc-handler-address: $iconIBC 
       archway-handler-address: $wasmIBC
+      block-interval: 1000
 paths:
   icon-archway:
     src:
       chain-id: ibc-icon
     dst:
-      chain-id: $CHAIN_ID
+      chain-id: $WASM_CHAIN_ID
 
     src-channel-filter:
       rule: ""

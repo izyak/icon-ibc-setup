@@ -8,14 +8,14 @@ DATA_LOCATION=$HOME/.relayer/debug_archway_msg_data.json
 SRC_CHAIN=$(yq r ~/.relayer/config/config.yaml paths.icon-archway.src.chain-id | xargs)
 DST_CHAIN=$(yq r ~/.relayer/config/config.yaml paths.icon-archway.dst.chain-id | xargs)
 
-if [[ "$SRC_CHAIN" == "$CHAIN_ID" && "$DST_CHAIN" == "ibc-icon" ]]; then 
+if [[ "$SRC_CHAIN" == "$WASM_CHAIN_ID" && "$DST_CHAIN" == "ibc-icon" ]]; then 
 	echo "Source: Archway  --  Destination: Icon"
 	OVERWRITE_TO=$CONTRACTS_DIR/test_data/archway_to_icon_raw.json
-elif [[ "$SRC_CHAIN" == "ibc-icon" && "$DST_CHAIN" == "$CHAIN_ID" ]]; then
+elif [[ "$SRC_CHAIN" == "ibc-icon" && "$DST_CHAIN" == "$WASM_CHAIN_ID" ]]; then
 	echo "Source: Icon  --  Destination: Archway"
 	OVERWRITE_TO=$CONTRACTS_DIR/test_data/icon_to_archway_raw.json
 else 
-	echo "Invalid relayer config. Please check source and destionation chain id. Should be $CHAIN_ID or ibc-icon ---"
+	echo "Invalid relayer config. Please check source and destionation chain id. Should be $WASM_CHAIN_ID or ibc-icon ---"
 	exit 0
 fi
 
