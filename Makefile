@@ -34,9 +34,8 @@ new-mock:
 chan:
 	./icon.sh chan
 	./archway.sh chan
-	
+
 all:
-	./common.sh update-btp-network-id
 	./icon.sh setup
 	./archway.sh setup
 	./cfg.update.sh
