@@ -35,20 +35,29 @@ chan:
 	./icon.sh chan
 	./archway.sh chan
 	
-all:
-	./common.sh update-btp-network-id
+contracts:
+# 	./common.sh update-btp-network-id
 	./icon.sh setup
 	./archway.sh setup
+# 	./icon.sh dapp
+# 	./archway.sh dapp
 	./cfg.update.sh
 
 ccfg:
 	./icon.sh cc
 	./archway.sh cc
 
-setup-xcall:
-	rly tx clients icon-archway --client-tp "10000s" --debug
+tempchan:
+	./icon.sh tempchan
+
+xx:
+	rly tx clients icon-archway --client-tp "10000000m" # --btp-block-height 11313986
 	rly tx conn icon-archway
+	./icon.sh tempchan
+
 	# configureConnection in xcall connection for both chains
 	./icon.sh cc
 	./archway.sh cc
 	./rly.sh create-channel
+
+

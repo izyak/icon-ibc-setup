@@ -26,7 +26,7 @@ global:
   light-cache-size: 20
 chains:
   archway:
-    type: archway
+    type: wasm
     value:
       key-directory: $ARCHWAY_KEY_DIR 
       key: default
@@ -35,7 +35,7 @@ chains:
       account-prefix: archway
       keyring-backend: test
       gas-adjustment: 1.5
-      gas-prices: 0.02$TOKEN
+      gas-prices: $ARCHWAY_GAS$TOKEN
       min-gas-amount: 1_000_000
       debug: true
       timeout: 20s
@@ -46,28 +46,31 @@ chains:
       coin-type: 0
       broadcast-mode: batch
       ibc-handler-address: $wasmIBC
+      start-height: 0
+      block-interval: 6000
   icon:
     type: icon
     value:
       key: ""
       chain-id: ibc-icon
-      rpc-addr: $ICON_NODE 
+      rpc-addr: $ICON_NODE/
       timeout: 30s
       keystore: $ICON_WALLET 
-      password: gochain
-      icon-network-id: 3
+      password: $ICON_PASSWORD
+      icon-network-id: $ICON_NID
       btp-network-id: $BTP_NETWORK_ID
       btp-network-type-id: 1
       start-btp-height: 0
       ibc-handler-address: $iconIBC 
       archway-handler-address: $wasmIBC
+      start-height: 0
+      block-interval: 2000
 paths:
   icon-archway:
     src:
       chain-id: ibc-icon
     dst:
       chain-id: $CHAIN_ID
-
     src-channel-filter:
       rule: ""
       channel-list: []

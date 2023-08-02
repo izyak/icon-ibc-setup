@@ -4,8 +4,10 @@ source consts.sh
 
 function startNodeIcon() {
 	cd $ICON_DOCKER_PATH
-	pwd
+	# non persistent
 	make ibc-ready
+	# persistent
+	# make start
 }
 
 function startNodeArchway() {

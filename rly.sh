@@ -14,7 +14,7 @@ function createConnection(){
 
 function createChannel(){
     port_name=$(cat $CURRENT_MOCK_ID)
-    rly tx chan icon-archway --src-port=$port_name --dst-port=$port_name  -d
+    rly tx chan icon-archway --src-port=$port_name --dst-port=$port_name 
 }
 
 function handshake(){

@@ -3,7 +3,7 @@
 source consts.sh
 
 
-tx_call_args_icon_common=" --uri $ICON_NODE  --nid 3  --step_limit 100000000000 --key_store $ICON_WALLET --key_password gochain "
+tx_call_args_icon_common=" --uri $ICON_NODE  --nid $ICON_NID  --step_limit 100000000000 --key_store $ICON_WALLET --key_password $ICON_PASSWORD "
 
 function printDebugTrace() {
 	local txHash=$1
@@ -42,7 +42,7 @@ function openBTPNetwork() {
 	    --param name=$name \
 	    --param owner=$owner \
 		$tx_call_args_icon_common | jq -r .)
-	sleep 2
+	sleep $ICON_SLEEP_TIME
 	wait_for_it $txHash
 }
 
@@ -62,7 +62,7 @@ function deployIBCHandler() {
 			$tx_call_args_icon_common | jq -r .)
 
 
-	sleep 2
+	sleep $ICON_SLEEP_TIME
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -81,7 +81,7 @@ function deployXcallMulti() {
 			$tx_call_args_icon_common | jq -r .)
 
 
-	sleep 2
+	sleep $ICON_SLEEP_TIME
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -107,10 +107,51 @@ function deployXcallConnection() {
 			$tx_call_args_icon_common| jq -r .)
 
 
-	sleep 2
+	sleep $ICON_SLEEP_TIME
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
+}
+
+function deployMultiProtocolSampleDapp() {
+	echo "$ICON Deploy Multi protocol sample dapp"
+	local wallet=$1
+	local filename=$2
+	local password=gochain
+
+    local xCallMulti=$(cat $ICON_XCALL_MULTI)
+
+
+	local txHash=$(goloop rpc sendtx deploy $XCALL_DAPP_ICON \
+			--content_type application/java \
+			--to cx0000000000000000000000000000000000000000 \
+			--param _callService=$xCallMulti \
+			$tx_call_args_icon_common| jq -r .)
+
+
+	sleep $ICON_SLEEP_TIME
+	wait_for_it $txHash
+	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
+	echo $scoreAddr > $filename
+}
+
+function addConnectionToDapp() {
+	echo "$ICON Add xcall connection to dapp"
+	local wallet=$1
+
+	local xcallConnectionSrc=$(cat $ICON_XCALL_CONNECTION)
+	local xcallConnectionDst=$(cat $WASM_XCALL_CONNECTION_CONTRACT)
+	local xcallDapp=$(cat $ICON_XCALL_DAPP_CONTRACT)
+
+	   local txHash=$(goloop rpc sendtx call \
+	    --to $xcallDapp\
+	    --method addConnection \
+	    --param nid=$ARCHWAY_DEFAULT_NID \
+	    --param source=$xcallConnectionSrc \
+	    --param destination=$xcallConnectionDst \
+		$tx_call_args_icon_common | jq -r .)
+    sleep $ICON_SLEEP_TIME
+    wait_for_it $txHash
 }
 
 
@@ -126,6 +167,15 @@ function deployXcallModule() {
 	local portId=$(cat $CURRENT_MOCK_ID)
 
 	bindPort $wallet $ibcHandler $portId $xcallConnection
+}
+
+function deployXcallDapp() {
+	local wallet=$ICON_WALLET
+	# use demo-multi-dapp to interface with xcall
+	deployMultiProtocolSampleDapp $wallet $ICON_XCALL_DAPP_CONTRACT
+	separator
+	addConnectionToDapp $wallet 
+	log
 }
 
 function configureConnection() {
@@ -145,8 +195,6 @@ function configureConnection() {
 	local xcallConnection=$(cat $ICON_XCALL_CONNECTION)
 
     echo "$ICON Configure Connection"
-
-    echo "$ICON Register Tendermint Light Client"
     local wallet=$ICON_WALLET
     local password=gochain
     local toContract=$(cat $ICON_XCALL_CONNECTION)
@@ -160,7 +208,7 @@ function configureConnection() {
 	    --param clientId=$clientId \
 	    --param timeoutHeight=1000000\
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep $ICON_SLEEP_TIME
     wait_for_it $txHash
 
     separator
@@ -174,9 +222,39 @@ function configureConnection() {
 	    --param nid=$ARCHWAY_DEFAULT_NID \
 	    --param connection=$xcallConnection \
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep $ICON_SLEEP_TIME
     wait_for_it $txHash
 
+}
+
+
+function tempChan() {
+	local wallet=$ICON_WALLET
+	local ibcHandler=$(cat $ICON_IBC_CONTRACT)
+	local fileName=$ICON_MOCK_APP_CONTRACT
+
+	log 
+	# deploy Mock contract
+	deployMockApp $wallet $ibcHandler $filename 
+	
+	# bind port
+	local mockAppAddr=$(cat $ICON_MOCK_APP_CONTRACT)
+	local port="xxx"
+	bindPort $wallet $ibcHandler $port $mockAppAddr
+
+	# call channel open init
+	echo $ICON " Channel Open Init ---"
+	 local txHash=$(goloop rpc sendtx call \
+        --uri $ICON_NODE \
+        --nid $ICON_NID \
+        --step_limit 1000000000\
+        --to $ibcHandler \
+        --method channelOpenInit \
+        --raw "{\"params\":{\"msg\":{\"portId\":\"$port\",\"channel\":\"080110011a060a046d6f636b220c636f6e6e656374696f6e2d302a0769637332302d31\"}}}"\
+        --key_store ~/keystore/godWallet.json \
+        --key_password gochain | jq -r .)
+	sleep $ICON_SLEEP_TIME
+    wait_for_it $txHash
 }
 
 function deployMockApp() {
@@ -193,11 +271,10 @@ function deployMockApp() {
 	local txHash=$(goloop rpc sendtx deploy $MOCK_ICON \
 			--content_type application/java \
 			--to cx0000000000000000000000000000000000000000 \
-			--param _ibc=$ibcHandler \
-			--param _timeoutHeight=50000000 \
+			--param ibcHandler=$ibcHandler \
 			$tx_call_args_icon_common| jq -r .)
 
-    sleep 2
+    sleep $ICON_SLEEP_TIME
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -247,7 +324,7 @@ function deployLightClient() {
 			--to cx0000000000000000000000000000000000000000 \
             --param ibcHandler=$ibcHandler\
 			$tx_call_args_icon_common| jq -r .)
-    sleep 2
+    sleep $ICON_SLEEP_TIME
 	wait_for_it $txHash
 	scoreAddr=$(goloop rpc txresult --uri $ICON_NODE $txHash | jq -r .scoreAddress)
 	echo $scoreAddr > $filename
@@ -266,7 +343,7 @@ function registerClient() {
 	    --param clientType="07-tendermint" \
 	    --param client=$clientAddr \
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep $ICON_SLEEP_TIME
     wait_for_it $txHash
 }
 
@@ -282,7 +359,7 @@ function newMock(){
 
 	bindPort $wallet $ibcHandler $port_id $mockApp
 
-    sleep 2
+    sleep $ICON_SLEEP_TIME
     echo $res
     separator
 }
@@ -301,7 +378,7 @@ function bindPort() {
 	    --param moduleAddress=$mockAppAddr \
 	    --param portId=$portId \
 		$tx_call_args_icon_common | jq -r .)
-    sleep 2
+    sleep $ICON_SLEEP_TIME
     wait_for_it $txHash
 }
 
@@ -362,8 +439,29 @@ function callMockContract(){
 				$tx_call_args_icon_common | jq -r .)
 
 	echo $txHash
-    sleep 2
+    sleep $ICON_SLEEP_TIME
     wait_for_it $txHash
+}
+
+# does not wait fot txn result
+function sendPacketOnly() {
+	local addr=$(cat $ICON_XCALL_MULTI)
+	local default_address=archway1m0zv2tl9cq6hf5tcws7j9xgyn070pz8urv06ae
+	local txHash=$(goloop rpc sendtx call \
+    			--to $addr \
+    			--method sendCallMessage \
+    			--param _to=$ARCHWAY_DEFAULT_NID/$default_address \
+    			--param _data=0x6e696c696e \
+				$tx_call_args_icon_common | jq -r .)
+
+	echo $txHash
+}
+
+function batchSendPacket() {
+	for i in {1..50}
+	do
+		sendPacketOnly
+	done
 }
 
 
@@ -378,6 +476,10 @@ case "$CMD" in
     setup
   ;;
 
+  dapp )
+	deployXcallDapp
+  ;;
+
   run-node )
 	runNode
   ;;
@@ -389,12 +491,23 @@ case "$CMD" in
   test-call )
 	callMockContract
 	;;
+
   cc )
     configureConnection
     ;;
+
   chan )
 	newChannel
 	;;
+
+  tempchan )
+	tempChan
+	;;
+
+  batchsend )
+	batchSendPacket
+	;;
+	
   * )
     echo "Error: unknown command: $CMD"
     usage
