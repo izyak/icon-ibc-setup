@@ -143,12 +143,28 @@ function addConnectionToDapp() {
 	local xcallConnectionDst=$(cat $WASM_XCALL_CONNECTION_CONTRACT)
 	local xcallDapp=$(cat $ICON_XCALL_DAPP_CONTRACT)
 
-	   local txHash=$(goloop rpc sendtx call \
+	local txHash=$(goloop rpc sendtx call \
 	    --to $xcallDapp\
 	    --method addConnection \
 	    --param nid=$ARCHWAY_DEFAULT_NID \
 	    --param source=$xcallConnectionSrc \
 	    --param destination=$xcallConnectionDst \
+		$tx_call_args_icon_common | jq -r .)
+    sleep $ICON_SLEEP_TIME
+    wait_for_it $txHash
+}
+
+function sendCallMessageDapp() {
+	echo "$ICON Send Message"
+	local wallet=$ICON_WALLET
+	local xcallDapp=$(cat $ICON_XCALL_DAPP_CONTRACT)
+
+	local txHash=$(goloop rpc sendtx call \
+	    --to $xcallDapp\
+	    --method sendMessage \
+	    --param _to=$ARCHWAY_DEFAULT_NID/archway12345 \
+	    --param _data=0x7b7d \
+	    --param _rollback=0x726f6c6c6261636b \
 		$tx_call_args_icon_common | jq -r .)
     sleep $ICON_SLEEP_TIME
     wait_for_it $txHash
@@ -478,6 +494,10 @@ case "$CMD" in
 
   dapp )
 	deployXcallDapp
+  ;;
+
+  send-msg )
+	sendCallMessageDapp
   ;;
 
   run-node )

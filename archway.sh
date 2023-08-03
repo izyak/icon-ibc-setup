@@ -96,7 +96,8 @@ function deployXcallModule() {
 }
 
 function deployXcallDapp() {
-    local init="{\"address\":\"${WASM_XCALL_MULTI_CONTRACT}\"}"
+    local xCallMulti=$(cat $WASM_XCALL_MULTI_CONTRACT)
+    local init="{\"address\":\"${xCallMulti}\"}"
     deployContract $XCALL_DAPP_WASM $init $WASM_XCALL_DAPP_CONTRACT
     separator
 
@@ -140,7 +141,7 @@ function configureConnection() {
     local portId=$(cat $CURRENT_MOCK_ID)
 
     # TODO: TOOO SMALL NOW, INCREASE FOR PROD
-    local initArgs="{\"configure_connection\":{\"connection_id\":\"connection-0\",\"counterparty_port_id\":\"$portId\",\"counterparty_nid\":\"$ICON_DEFAULT_NID\",\"client_id\":\"${clientId}\",\"timeout_height\":3000}}"
+    local initArgs="{\"configure_connection\":{\"connection_id\":\"connection-0\",\"counterparty_port_id\":\"$portId\",\"counterparty_nid\":\"$ICON_DEFAULT_NID\",\"client_id\":\"${clientId}\",\"timeout_height\":30}}"
     local xcallConnection=$(cat $WASM_XCALL_CONNECTION_CONTRACT)
 
     echo "$WASM Configure Connection"

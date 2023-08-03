@@ -39,8 +39,8 @@ contracts:
 # 	./common.sh update-btp-network-id
 	./icon.sh setup
 	./archway.sh setup
-# 	./icon.sh dapp
-# 	./archway.sh dapp
+	./icon.sh dapp
+	./archway.sh dapp
 	./cfg.update.sh
 
 ccfg:
